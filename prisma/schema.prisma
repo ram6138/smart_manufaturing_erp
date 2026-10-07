@@ -1,0 +1,60 @@
+// Prisma schema file for Smart Manufacturing ERP
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  role      String   @default("OPERATOR") // ADMIN, MANAGER, OPERATOR, AUDITOR
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Machine {
+  id          String   @id @default(uuid())
+  name        String
+  code        String   @unique
+  type        String
+  status      String   @default("ONLINE") // ONLINE, OFFLINE, MAINTENANCE, ERROR
+  health      Int      @default(100)
+  temperature Float?
+  vibration   Float?
+  lastService DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model InventoryItem {
+  id            String   @id @default(uuid())
+  sku           String   @unique
+  name          String
+  category      String
+  quantity      Int      @default(0)
+  reorderPoint  Int      @default(10)
+  unitCost      Float    @default(0.0)
+  location      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ProductionOrder {
+  id          String   @id @default(uuid())
+  orderNumber String   @unique
+  productName String
+  targetQty   Int
+  producedQty Int      @default(0)
+  status      String   @default("QUEUED") // QUEUED, IN_PROGRESS, COMPLETED, CANCELLED
+  priority    String   @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  dueDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

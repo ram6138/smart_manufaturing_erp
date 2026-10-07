@@ -1,0 +1,407 @@
+"use client";
+
+import React, { useState, useMemo, useEffect } from "react";
+import { ErpLayout } from "@/components/layout/erp-layout";
+import {
+  QualityInspection,
+  QualityDefect,
+  QualityAnomaly,
+  QualityFilterState,
+  ProductName,
+  DefectStatus,
+} from "@/types/quality";
+import {
+  INITIAL_INSPECTIONS,
+  INITIAL_DEFECTS,
+  INITIAL_ANOMALIES,
+  QUALITY_TREND_30_DAYS,
+  PRODUCT_QUALITY_BENCHMARKS,
+} from "@/lib/mock-data/quality";
+import { QualityKpiCards } from "@/components/quality/quality-kpi-cards";
+import { QualityScore } from "@/components/quality/quality-score";
+import { QualityFilters } from "@/components/quality/quality-filters";
+import { QualityTrendChart } from "@/components/quality/quality-trend-chart";
+import { DefectDistributionChart } from "@/components/quality/defect-distribution-chart";
+import { ProductComparisonChart } from "@/components/quality/product-comparison-chart";
+import { InspectionTable } from "@/components/quality/inspection-table";
+import { DefectTable } from "@/components/quality/defect-table";
+import { QualityAnomalies } from "@/components/quality/quality-anomalies";
+import { InspectionDetails } from "@/components/quality/inspection-details";
+import { UpdateQualityIssueModal } from "@/components/quality/update-quality-issue-modal";
+import { NewInspectionModal } from "@/components/quality/new-inspection-modal";
+import {
+  Plus,
+  RefreshCw,
+  CheckCircle2,
+  Sparkles,
+  ClipboardCheck,
+} from "lucide-react";
+
+export default function QualityPage() {
+  const [inspections, setInspections] = useState<QualityInspection[]>([]);
+  const [defects, setDefects] = useState<QualityDefect[]>([]);
+  const [anomalies, setAnomalies] = useState<QualityAnomaly[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadData() {
+      try {
+        const res = await fetch("/api/quality", { cache: "no-store" });
+        if (res.ok && isMounted) {
+          const data = await res.json();
+          if (data.status === "success" && isMounted) {
+            setInspections(data.inspections || []);
+            // Derive defects from live inspections
+            if (data.inspections?.length > 0) {
+              const liveDefects = data.inspections
+                .filter((i: any) => i.defectiveQuantity > 0)
+                .map((i: any) => ({
+                  id: `defect_${i.id}`,
+                  productName: i.productName,
+                  productCode: i.productCode,
+                  defectType: i.defectType || 'Quality Variance',
+                  severity: i.severity || 'Medium',
+                  occurrenceCount: i.defectCount || 1,
+                  affectedBatch: i.batchNumber,
+                  detectedAt: i.inspectionDate,
+                  status: i.status === 'Passed' ? 'Closed' : 'Open',
+                  assignedTo: i.inspectorName,
+                  rootCause: i.rootCause,
+                  correctiveAction: i.correctiveAction,
+                }));
+              setDefects(liveDefects);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("Using default quality state", e);
+      }
+    }
+
+    loadData();
+    const interval = setInterval(loadData, 4000);
+    window.addEventListener("focus", loadData);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      window.removeEventListener("focus", loadData);
+    };
+  }, []);
+
+  // Filter state
+  const [filters, setFilters] = useState<QualityFilterState>({
+    searchQuery: "",
+    product: "all",
+    status: "all",
+    defectType: "all",
+    dateRange: "all",
+  });
+
+  // Modal states
+  const [selectedInspectionForDetails, setSelectedInspectionForDetails] =
+    useState<QualityInspection | null>(null);
+  const [isInspectionDetailsOpen, setIsInspectionDetailsOpen] = useState(false);
+
+  const [selectedDefectForUpdate, setSelectedDefectForUpdate] =
+    useState<QualityDefect | null>(null);
+  const [isUpdateIssueModalOpen, setIsUpdateIssueModalOpen] = useState(false);
+
+  const [isNewInspectionModalOpen, setIsNewInspectionModalOpen] = useState(false);
+
+  // Toast / sync state
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Filtered Inspections
+  const filteredInspections = useMemo(() => {
+    return inspections.filter((item) => {
+      // Search
+      if (filters.searchQuery) {
+        const query = filters.searchQuery.toLowerCase();
+        const matchesNum = item.inspectionNumber.toLowerCase().includes(query);
+        const matchesPo = item.productionOrderId.toLowerCase().includes(query);
+        const matchesBatch = item.batchNumber.toLowerCase().includes(query);
+        const matchesInspector = item.inspectorName.toLowerCase().includes(query);
+        const matchesProduct = item.product.toLowerCase().includes(query);
+        if (!matchesNum && !matchesPo && !matchesBatch && !matchesInspector && !matchesProduct) {
+          return false;
+        }
+      }
+
+      // Product
+      if (filters.product !== "all" && item.product !== filters.product) {
+        return false;
+      }
+
+      // Status
+      if (filters.status !== "all" && item.status !== filters.status) {
+        return false;
+      }
+
+      // Defect Type (matches if inspection contains a defect of that type)
+      if (filters.defectType !== "all") {
+        const hasDefectType = item.defects.some((d) => d.defectType === filters.defectType);
+        if (!hasDefectType) return false;
+      }
+
+      // Date Range
+      if (filters.dateRange !== "all") {
+        const itemDate = new Date(item.inspectionDate);
+        const now = new Date();
+        if (filters.dateRange === "today") {
+          const isToday =
+            itemDate.getDate() === now.getDate() &&
+            itemDate.getMonth() === now.getMonth() &&
+            itemDate.getFullYear() === now.getFullYear();
+          if (!isToday) return false;
+        } else if (filters.dateRange === "7days") {
+          const diffDays = (now.getTime() - itemDate.getTime()) / (1000 * 3600 * 24);
+          if (diffDays > 7) return false;
+        } else if (filters.dateRange === "30days") {
+          const diffDays = (now.getTime() - itemDate.getTime()) / (1000 * 3600 * 24);
+          if (diffDays > 30) return false;
+        }
+      }
+
+      return true;
+    });
+  }, [inspections, filters]);
+
+  // Handlers
+  const handleOpenInspectionDetails = (inspection: QualityInspection) => {
+    setSelectedInspectionForDetails(inspection);
+    setIsInspectionDetailsOpen(true);
+  };
+
+  const handleOpenUpdateDefect = (defect: QualityDefect) => {
+    setSelectedDefectForUpdate(defect);
+    setIsUpdateIssueModalOpen(true);
+  };
+
+  const handleInvestigateDefect = (defect: QualityDefect) => {
+    setDefects((prev) =>
+      prev.map((d) =>
+        d.id === defect.id ? { ...d, status: "Investigating" as DefectStatus } : d
+      )
+    );
+    // Also update in inspections if nested
+    setInspections((prev) =>
+      prev.map((i) => ({
+        ...i,
+        defects: i.defects.map((d) =>
+          d.id === defect.id ? { ...d, status: "Investigating" as DefectStatus } : d
+        ),
+      }))
+    );
+    setToastMessage(`Defect ${defect.qualityDefectId} status set to Investigating`);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleResolveDefect = (defect: QualityDefect) => {
+    setDefects((prev) =>
+      prev.map((d) =>
+        d.id === defect.id ? { ...d, status: "Resolved" as DefectStatus } : d
+      )
+    );
+    // Also update in inspections if nested
+    setInspections((prev) =>
+      prev.map((i) => ({
+        ...i,
+        defects: i.defects.map((d) =>
+          d.id === defect.id ? { ...d, status: "Resolved" as DefectStatus } : d
+        ),
+      }))
+    );
+    setToastMessage(`Defect ${defect.qualityDefectId} successfully marked as Resolved`);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleSaveDefectUpdate = (updatedDefect: QualityDefect) => {
+    setDefects((prev) =>
+      prev.map((d) => (d.id === updatedDefect.id ? updatedDefect : d))
+    );
+    setInspections((prev) =>
+      prev.map((i) => ({
+        ...i,
+        defects: i.defects.map((d) =>
+          d.id === updatedDefect.id ? updatedDefect : d
+        ),
+      }))
+    );
+    setToastMessage(`CAPA record for ${updatedDefect.qualityDefectId} updated successfully`);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleCreateInspection = (
+    newInspection: QualityInspection,
+    newDefect?: QualityDefect
+  ) => {
+    setInspections((prev) => [newInspection, ...prev]);
+    if (newDefect) {
+      setDefects((prev) => [newDefect, ...prev]);
+    }
+    setToastMessage(`Inspection ${newInspection.inspectionNumber} recorded successfully!`);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  const handleFilterByProduct = (productName: string) => {
+    setFilters((prev) => ({ ...prev, product: productName }));
+    window.scrollTo({ top: 800, behavior: "smooth" });
+  };
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+      setToastMessage("Quality telemetry and statistical process charts re-synced");
+      setTimeout(() => setToastMessage(null), 3500);
+    }, 600);
+  };
+
+  return (
+    <ErpLayout>
+      <div className="space-y-6 pb-12">
+        {/* Toast Notification */}
+        {toastMessage && (
+          <div className="fixed top-20 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-emerald-950 border border-emerald-500 text-emerald-200 rounded-xl shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-top duration-300">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            <span className="text-sm font-medium">{toastMessage}</span>
+          </div>
+        )}
+
+        {/* Page Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                Quality Control
+              </h1>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                AQL & SPC Active
+              </span>
+            </div>
+            <p className="text-sm text-slate-400 mt-1">
+              Monitor product quality, defects, inspections and quality risks.
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-xs font-medium transition-all shadow-sm"
+              title="Refresh quality metrics"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${isRefreshing ? "animate-spin" : ""}`} />
+              <span>{isRefreshing ? "Syncing..." : "Sync QA Data"}</span>
+            </button>
+
+            <button
+              onClick={() => setIsNewInspectionModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ New Inspection</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 1. QUALITY KPI CARDS */}
+        <QualityKpiCards inspections={inspections} defects={defects} />
+
+        {/* 2. QUALITY OVERVIEW & OVERALL QUALITY SCORE */}
+        <QualityScore inspections={inspections} defects={defects} />
+
+        {/* 3. QUALITY ANOMALIES (AI Quality Anomaly Detection Layer) */}
+        <QualityAnomalies
+          anomalies={anomalies}
+          onInvestigateProduct={handleFilterByProduct}
+        />
+
+        {/* 4. QUALITY CHARTS SECTION: Quality Trend & Defect Distribution */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-7">
+            <QualityTrendChart data={QUALITY_TREND_30_DAYS} />
+          </div>
+          <div className="lg:col-span-5">
+            <DefectDistributionChart defects={defects} />
+          </div>
+        </div>
+
+        {/* 5. PRODUCT QUALITY COMPARISON BAR CHART */}
+        <ProductComparisonChart data={PRODUCT_QUALITY_BENCHMARKS} />
+
+        {/* 6. QUALITY FILTERS */}
+        <QualityFilters
+          filters={filters}
+          onFilterChange={(newFilters) => setFilters((prev) => ({ ...prev, ...newFilters }))}
+          onResetFilters={() =>
+            setFilters({
+              searchQuery: "",
+              product: "all",
+              status: "all",
+              defectType: "all",
+              dateRange: "all",
+            })
+          }
+          totalInspections={inspections.length}
+          filteredCount={filteredInspections.length}
+        />
+
+        {/* 7. RECENT QUALITY INSPECTION TABLE */}
+        <InspectionTable
+          inspections={filteredInspections}
+          onViewInspection={handleOpenInspectionDetails}
+        />
+
+        {/* 8. QUALITY DEFECT TABLE */}
+        <DefectTable
+          defects={defects}
+          onViewDefect={(def) => {
+            const parentInsp = inspections.find((i) => i.id === def.inspectionId);
+            if (parentInsp) {
+              handleOpenInspectionDetails(parentInsp);
+            } else {
+              handleOpenUpdateDefect(def);
+            }
+          }}
+          onInvestigateDefect={handleInvestigateDefect}
+          onResolveDefect={handleResolveDefect}
+          onUpdateIssueModal={handleOpenUpdateDefect}
+        />
+
+        {/* MODALS */}
+        <InspectionDetails
+          inspection={selectedInspectionForDetails}
+          isOpen={isInspectionDetailsOpen}
+          onClose={() => {
+            setIsInspectionDetailsOpen(false);
+            setSelectedInspectionForDetails(null);
+          }}
+          onUpdateDefect={(def) => {
+            setIsInspectionDetailsOpen(false);
+            handleOpenUpdateDefect(def);
+          }}
+        />
+
+        <UpdateQualityIssueModal
+          defect={selectedDefectForUpdate}
+          isOpen={isUpdateIssueModalOpen}
+          onClose={() => {
+            setIsUpdateIssueModalOpen(false);
+            setSelectedDefectForUpdate(null);
+          }}
+          onSave={handleSaveDefectUpdate}
+        />
+
+        <NewInspectionModal
+          isOpen={isNewInspectionModalOpen}
+          onClose={() => setIsNewInspectionModalOpen(false)}
+          onSubmit={handleCreateInspection}
+        />
+      </div>
+    </ErpLayout>
+  );
+}

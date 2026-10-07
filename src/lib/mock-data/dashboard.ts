@@ -1,0 +1,396 @@
+import {
+  AIInsightItem,
+  InventoryAlertItem,
+  KPICardData,
+  MachineStatusItem,
+  ProductionOrderItem,
+  ProductionTrendPoint,
+  ProductProductionItem,
+  QualityOverviewData,
+  RecentActivityItem,
+} from "@/types/dashboard";
+
+export const DASHBOARD_KPIS: KPICardData[] = [
+  {
+    id: "total_production",
+    title: "Total Production",
+    value: "125,480",
+    unit: "units",
+    previousValue: "119,700",
+    changePercent: 4.8,
+    trend: "up",
+    isPositive: true,
+    periodLabel: "vs previous 7 days",
+    iconName: "Factory",
+    href: "/production",
+  },
+  {
+    id: "production_efficiency",
+    title: "Production Efficiency",
+    value: "92.4%",
+    previousValue: "91.2%",
+    changePercent: 1.2,
+    trend: "up",
+    isPositive: true,
+    periodLabel: "vs 90.0% plant target",
+    iconName: "Gauge",
+    href: "/production",
+  },
+  {
+    id: "rejection_rate",
+    title: "Rejection Rate",
+    value: "2.8%",
+    previousValue: "3.2%",
+    changePercent: -0.4,
+    trend: "down",
+    isPositive: true, // down in rejection rate is positive
+    periodLabel: "vs last week average",
+    iconName: "ShieldAlert",
+    href: "/quality",
+  },
+  {
+    id: "active_orders",
+    title: "Active Production Orders",
+    value: "24",
+    unit: "jobs",
+    previousValue: "21",
+    changePercent: 14.3,
+    trend: "up",
+    isPositive: true,
+    periodLabel: "4 lines operating",
+    iconName: "ClipboardList",
+    href: "/orders",
+  },
+  {
+    id: "machine_availability",
+    title: "Machine Availability",
+    value: "94.2%",
+    previousValue: "93.4%",
+    changePercent: 0.8,
+    trend: "up",
+    isPositive: true,
+    periodLabel: "Across 5 plant assets",
+    iconName: "Cpu",
+    href: "/machines",
+  },
+  {
+    id: "inventory_alerts",
+    title: "Inventory Alerts",
+    value: "8",
+    unit: "materials",
+    previousValue: "5",
+    changePercent: 37.5,
+    trend: "up",
+    isPositive: false, // more inventory alerts is a warning
+    periodLabel: "2 critical reorder levels",
+    iconName: "AlertTriangle",
+    href: "/inventory",
+  },
+];
+
+export const PRODUCTION_TREND_DATA: ProductionTrendPoint[] = [
+  { date: "2026-09-25", dayLabel: "Fri (Sep 25)", planned: 17500, actual: 16800, efficiency: 96.0 },
+  { date: "2026-09-26", dayLabel: "Sat (Sep 26)", planned: 18000, actual: 17950, efficiency: 99.7 },
+  { date: "2026-09-27", dayLabel: "Sun (Sep 27)", planned: 14000, actual: 13400, efficiency: 95.7 },
+  { date: "2026-09-28", dayLabel: "Mon (Sep 28)", planned: 19500, actual: 18200, efficiency: 93.3 },
+  { date: "2026-09-29", dayLabel: "Tue (Sep 29)", planned: 20000, actual: 19450, efficiency: 97.2 },
+  { date: "2026-09-30", dayLabel: "Wed (Sep 30)", planned: 21000, actual: 18900, efficiency: 90.0 },
+  { date: "2026-10-01", dayLabel: "Today (Thu)", planned: 21500, actual: 20780, efficiency: 96.6 },
+];
+
+export const PRODUCT_PRODUCTION_DATA: ProductProductionItem[] = [
+  { product: "Classic Butter Biscuit", quantity: 34200, target: 35000, unit: "units", share: 27.2, fillColor: "#06b6d4" }, // cyan
+  { product: "Chocolate Biscuit", quantity: 28400, target: 30000, unit: "units", share: 22.6, fillColor: "#3b82f6" }, // blue
+  { product: "Coconut Biscuit", quantity: 19800, target: 20000, unit: "units", share: 15.8, fillColor: "#10b981" }, // emerald
+  { product: "Cream Biscuit", quantity: 18100, target: 20000, unit: "units", share: 14.4, fillColor: "#8b5cf6" }, // purple
+  { product: "Marie Biscuit", quantity: 14200, target: 15000, unit: "units", share: 11.3, fillColor: "#f59e0b" }, // amber
+  { product: "Salted Biscuit", quantity: 10780, target: 12000, unit: "units", share: 8.7, fillColor: "#ec4899" }, // pink
+];
+
+export const MACHINE_STATUS_DATA: MachineStatusItem[] = [
+  {
+    id: "m_oven_1",
+    name: "Baking Oven 1",
+    type: "Continuous Tunnel Oven",
+    status: "Running",
+    utilization: 96,
+    downtime: "0 mins today",
+    temperature: "192°C",
+    currentWorkOrder: "PROD-00126 (Classic Butter)",
+  },
+  {
+    id: "m_oven_2",
+    name: "Baking Oven 2",
+    type: "Rotary Deck Oven",
+    status: "Warning",
+    utilization: 74,
+    downtime: "48 mins today",
+    temperature: "178°C (Fluc.)",
+    currentWorkOrder: "PROD-00125 (Chocolate)",
+  },
+  {
+    id: "m_mixer_1",
+    name: "Mixer 1",
+    type: "High-Shear Batch Mixer",
+    status: "Running",
+    utilization: 91,
+    downtime: "15 mins today",
+    temperature: "24°C",
+    currentWorkOrder: "PROD-00128 (Coconut)",
+  },
+  {
+    id: "m_pack_1",
+    name: "Packaging Machine 1",
+    type: "Flow Wrap Packager",
+    status: "Running",
+    utilization: 88,
+    downtime: "10 mins today",
+    temperature: "Normal",
+    currentWorkOrder: "PROD-00124 (Marie)",
+  },
+  {
+    id: "m_pack_2",
+    name: "Packaging Machine 2",
+    type: "Secondary Box Cartoner",
+    status: "Maintenance",
+    utilization: 0,
+    downtime: "120 mins today",
+    temperature: "Offline",
+    currentWorkOrder: "Belt replacement scheduled",
+  },
+];
+
+export const QUALITY_OVERVIEW_DATA: QualityOverviewData = {
+  passedInspections: 1420,
+  failedInspections: 41,
+  rejectionRate: 2.8,
+  totalDefects: 328,
+  inspectedBatches: 58,
+  defects: [
+    { name: "Burnt Product", count: 124, percentage: 37.8, color: "#f43f5e" }, // rose
+    { name: "Broken Product", count: 98, percentage: 29.9, color: "#f97316" }, // orange
+    { name: "Incorrect Weight", count: 62, percentage: 18.9, color: "#eab308" }, // yellow
+    { name: "Packaging Defect", count: 44, percentage: 13.4, color: "#a855f7" }, // purple
+  ],
+};
+
+export const INVENTORY_ALERTS_DATA: InventoryAlertItem[] = [
+  {
+    id: "inv_flour",
+    material: "Wheat Flour",
+    category: "Raw Ingredients",
+    availableQuantity: 18500,
+    unit: "kg",
+    reorderLevel: 5000,
+    status: "Healthy",
+    stockPercentage: 78,
+    daysOfSupplyRemaining: 14,
+  },
+  {
+    id: "inv_sugar",
+    material: "Sugar",
+    category: "Raw Ingredients",
+    availableQuantity: 9200,
+    unit: "kg",
+    reorderLevel: 3000,
+    status: "Healthy",
+    stockPercentage: 65,
+    daysOfSupplyRemaining: 11,
+  },
+  {
+    id: "inv_cocoa",
+    material: "Cocoa Powder",
+    category: "Raw Ingredients",
+    availableQuantity: 1150,
+    unit: "kg",
+    reorderLevel: 1500,
+    status: "Low Stock",
+    stockPercentage: 28,
+    daysOfSupplyRemaining: 3.5,
+  },
+  {
+    id: "inv_wrapper",
+    material: "Biscuit Wrapper",
+    category: "Packaging Film",
+    availableQuantity: 14000,
+    unit: "meters",
+    reorderLevel: 20000,
+    status: "Low Stock",
+    stockPercentage: 35,
+    daysOfSupplyRemaining: 4.2,
+  },
+  {
+    id: "inv_box",
+    material: "Biscuit Box",
+    category: "Secondary Cartons",
+    availableQuantity: 850,
+    unit: "pieces",
+    reorderLevel: 2500,
+    status: "Critical",
+    stockPercentage: 14,
+    daysOfSupplyRemaining: 1.5,
+  },
+];
+
+export const RECENT_PRODUCTION_ORDERS: ProductionOrderItem[] = [
+  {
+    id: "po_124",
+    orderNumber: "PROD-00124",
+    product: "Marie Biscuit",
+    plannedQuantity: 25000,
+    producedQuantity: 25000,
+    unit: "units",
+    efficiency: 100,
+    status: "Completed",
+    priority: "Normal",
+    targetLine: "Line 1",
+    dueDate: "Today, 14:00",
+  },
+  {
+    id: "po_125",
+    orderNumber: "PROD-00125",
+    product: "Chocolate Biscuit",
+    plannedQuantity: 40000,
+    producedQuantity: 28400,
+    unit: "units",
+    efficiency: 89.2,
+    status: "In Progress",
+    priority: "Urgent",
+    targetLine: "Line 2",
+    dueDate: "Today, 22:00",
+  },
+  {
+    id: "po_126",
+    orderNumber: "PROD-00126",
+    product: "Classic Butter Biscuit",
+    plannedQuantity: 35000,
+    producedQuantity: 31500,
+    unit: "units",
+    efficiency: 94.6,
+    status: "In Progress",
+    priority: "High",
+    targetLine: "Line 1",
+    dueDate: "Tomorrow, 06:00",
+  },
+  {
+    id: "po_127",
+    orderNumber: "PROD-00127",
+    product: "Cream Biscuit",
+    plannedQuantity: 20000,
+    producedQuantity: 0,
+    unit: "units",
+    efficiency: 0,
+    status: "Scheduled",
+    priority: "Normal",
+    targetLine: "Line 3",
+    dueDate: "Tomorrow, 12:00",
+  },
+  {
+    id: "po_128",
+    orderNumber: "PROD-00128",
+    product: "Coconut Biscuit",
+    plannedQuantity: 30000,
+    producedQuantity: 12000,
+    unit: "units",
+    efficiency: 78.4,
+    status: "Delayed",
+    priority: "High",
+    targetLine: "Line 4",
+    dueDate: "Today, 18:00 (Overdue)",
+  },
+  {
+    id: "po_129",
+    orderNumber: "PROD-00129",
+    product: "Salted Biscuit",
+    plannedQuantity: 15000,
+    producedQuantity: 15000,
+    unit: "units",
+    efficiency: 97.1,
+    status: "Completed",
+    priority: "Low",
+    targetLine: "Line 3",
+    dueDate: "Yesterday, 20:00",
+  },
+];
+
+export const AI_OPERATIONS_INSIGHTS: AIInsightItem[] = [
+  {
+    id: "ai_ins_01",
+    title: "Production efficiency dropped on Oven-02",
+    severity: "High",
+    category: "Machine Uptime",
+    explanation:
+      "Production efficiency has decreased compared with the previous operating period due to intermittent thermal fluctuations.",
+    recommendedAction:
+      "Review Oven-02 operating conditions, sensor thermocouple calibration, and recent downtime logs.",
+    impact: "-15.2% Line 2 Throughput",
+    timestamp: "18 mins ago",
+  },
+  {
+    id: "ai_ins_02",
+    title: "Chocolate Biscuit rejection rate increased",
+    severity: "Medium",
+    category: "Quality Variance",
+    explanation:
+      "Recent quality records show an increase in rejected units, primarily attributed to burnt bottom crusting and weight variance.",
+    recommendedAction:
+      "Inspect baking temperature zone 3 and product cooling conveyor handling speed.",
+    impact: "+1.4% Defect Rate",
+    timestamp: "45 mins ago",
+  },
+  {
+    id: "ai_ins_03",
+    title: "Cocoa Powder consumption is increasing",
+    severity: "Medium",
+    category: "Material Consumption",
+    explanation:
+      "Material consumption is higher than the recent production pattern, exceeding the standard BOM dosing formula by 3.8%.",
+    recommendedAction:
+      "Review current stock, verify Mixer 1 automated feeder dispenser dosing, and evaluate upcoming production requirements.",
+    impact: "Stockout in 3.5 days without PO",
+    timestamp: "2 hours ago",
+  },
+];
+
+export const RECENT_ACTIVITY_DATA: RecentActivityItem[] = [
+  {
+    id: "act_1",
+    title: "Production Order PROD-00124 completed",
+    description: "25,000 units of Marie Biscuit packaged and cleared to warehouse bin W-04.",
+    timestamp: "12 mins ago",
+    type: "production",
+    badgeText: "Line 1",
+  },
+  {
+    id: "act_2",
+    title: "Quality inspection QI-00124 failed",
+    description: "Batch #BT-902 flagged for burnt product exceeding 4.2% tolerance limit.",
+    timestamp: "34 mins ago",
+    type: "quality",
+    badgeText: "QA Alert",
+  },
+  {
+    id: "act_3",
+    title: "Inventory replenishment received",
+    description: "Goods Receipt Note GRN-882: 10,000 kg Premium Wheat Flour verified.",
+    timestamp: "1 hour ago",
+    type: "inventory",
+    badgeText: "Stock +10T",
+  },
+  {
+    id: "act_4",
+    title: "Oven-02 maintenance alert created",
+    description: "Automatic sensor trigger: Heat chamber zone 2 temp drop below 180°C threshold.",
+    timestamp: "2 hours ago",
+    type: "maintenance",
+    badgeText: "Warning",
+  },
+  {
+    id: "act_5",
+    title: "Purchase Order PO-0042 created",
+    description: "Emergency requisition for 5,000 units of Biscuit Secondary Boxes sent to supplier.",
+    timestamp: "3 hours ago",
+    type: "procurement",
+    badgeText: "PO Approved",
+  },
+];

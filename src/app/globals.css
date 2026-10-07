@@ -1,26 +1,233 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #0f172a;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* =========================================================
+   Light Theme Base & Card Surfaces (White Canvas, No Black)
+   ========================================================= */
+
+/* Make all dark container backgrounds render as pure crisp white */
+.bg-slate-900,
+.bg-slate-900\/95,
+.bg-slate-900\/90,
+.bg-slate-900\/80,
+.bg-slate-900\/70,
+.bg-slate-900\/60,
+.bg-slate-900\/50,
+.bg-slate-900\/40,
+.bg-slate-900\/30,
+.bg-slate-900\/20,
+.bg-slate-950,
+.bg-slate-950\/90,
+.bg-slate-950\/80,
+.bg-slate-950\/70,
+.bg-slate-950\/60,
+.bg-slate-950\/50,
+.bg-slate-950\/40,
+.bg-slate-950\/30,
+.bg-slate-950\/20,
+.bg-black\/80,
+.bg-black\/75,
+.bg-black\/70 {
+  background-color: #ffffff;
+}
+
+/* Modal Backdrops - Soft translucent slate blur, not solid black */
+div.fixed.inset-0[class*="bg-black"],
+div.fixed.inset-0[class*="bg-slate-900"],
+div.fixed.inset-0[class*="bg-slate-950"] {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+}
+
+/* Make dark borders render as subtle light slate borders */
+.border-slate-900,
+.border-slate-800,
+.border-slate-800\/90,
+.border-slate-800\/80,
+.border-slate-800\/70,
+.border-slate-800\/60,
+.border-slate-800\/50,
+.border-slate-800\/40,
+.border-slate-800\/30,
+.border-slate-700,
+.border-slate-700\/80,
+.border-slate-700\/50 {
+  border-color: #e2e8f0;
+}
+
+/* Clean card elevation shadows */
+.bg-slate-900,
+.bg-slate-950,
+.bg-white {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+}
+
+/* =========================================================
+   Secondary Blue Color & Button Styling (Zero Black Buttons)
+   ========================================================= */
+
+/* Secondary buttons: Blue-tinted surface, crisp royal blue text & borders */
+button.bg-slate-800,
+button.bg-slate-900,
+button.bg-slate-950,
+button.bg-black,
+button[class*="bg-slate-800"],
+button[class*="bg-slate-900"],
+button[class*="bg-slate-950"] {
+  background-color: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border-color: #bfdbfe !important;
+}
+
+button.bg-slate-800:hover,
+button.bg-slate-900:hover,
+button.bg-slate-950:hover,
+button[class*="bg-slate-800"]:hover,
+button[class*="bg-slate-900"]:hover,
+button[class*="bg-slate-950"]:hover {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+  border-color: #93c5fd !important;
+}
+
+/* Make secondary badges and chips adopt crisp Blue styling */
+span.bg-slate-800,
+span.bg-slate-900,
+span.bg-slate-950,
+span[class*="bg-slate-800"],
+span[class*="bg-slate-900"] {
+  background-color: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border-color: #bfdbfe !important;
+}
+
+/* Primary buttons with gradient or blue retain white text */
+button[class*="bg-blue-600"],
+button[class*="from-cyan-"],
+button[class*="from-blue-"],
+a[class*="bg-blue-600"],
+a[class*="from-cyan-"],
+a[class*="from-blue-"] {
+  color: #ffffff !important;
+}
+
+/* =========================================================
+   Typography & High Contrast Text Rules
+   ========================================================= */
+
+h1, h2, h3, h4, h5, h6 {
+  color: #0f172a;
+}
+
+/* Card titles, headers, and KPI numbers default to crisp dark slate */
+.text-white:not(button):not(button *):not(a.bg-gradient-to-r *):not(a.bg-cyan-600 *):not([class*="bg-cyan-6"]):not([class*="bg-blue-6"]):not([class*="bg-emerald-6"]):not([class*="bg-rose-6"]):not([class*="bg-amber-6"]):not([class*="bg-purple-6"]):not([class*="bg-indigo-6"]):not([class*="bg-gradient-to-"]) {
+  color: #0f172a;
+}
+
+/* Specific colored pills retain white text */
+button.text-white,
+button .text-white,
+button span.text-white,
+a[class*="from-cyan-"] .text-white,
+div[class*="from-cyan-"] .text-white,
+div[class*="from-blue-"] .text-white,
+div[class*="from-purple-"] .text-white,
+div[class*="from-emerald-"] .text-white,
+div[class*="from-amber-"] .text-white,
+div[class*="from-rose-"] .text-white,
+span[class*="bg-cyan-600"] .text-white,
+[class*="bg-gradient-to-"] .text-white,
+[class*="bg-cyan-600"] .text-white,
+[class*="bg-blue-600"] .text-white,
+[class*="bg-emerald-600"] .text-white,
+[class*="bg-rose-600"] .text-white,
+[class*="bg-amber-600"] .text-white,
+[class*="bg-purple-600"] .text-white,
+[class*="bg-indigo-600"] .text-white {
+  color: #ffffff !important;
+}
+
+/* Secondary / muted text enhancements */
+.text-slate-400 {
+  color: #64748b;
+}
+
+.text-slate-300 {
+  color: #475569;
+}
+
+.text-slate-200 {
+  color: #1e293b;
+}
+
+.text-slate-100 {
+  color: #0f172a;
+}
+
+/* Tables and inputs */
+table thead th {
+  background-color: #f8fafc;
+  color: #475569;
+}
+
+input, select, textarea {
+  background-color: #ffffff;
+  color: #0f172a;
+  border-color: #e2e8f0;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+/* Custom Clean Light Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
 }
