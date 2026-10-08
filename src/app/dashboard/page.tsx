@@ -93,10 +93,10 @@ export default function DashboardPage() {
 
         {/* Live Database Sync Indicator */}
         {isDbLive && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-cyan-950/40 border border-cyan-500/30 text-cyan-300 text-xs font-mono w-fit">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <Database className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Connected to PostgreSQL Database (smart_manufacturing_erp)</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-xs font-mono w-fit shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <Database className="w-3.5 h-3.5 text-blue-600" />
+            <span className="font-semibold">Connected to PostgreSQL Database (smart_manufacturing_erp)</span>
           </div>
         )}
 

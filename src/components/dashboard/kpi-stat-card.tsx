@@ -28,52 +28,64 @@ export function KPIStatCard({ data }: KPIStatCardProps) {
   const getIcon = (iconName: string) => {
     switch (iconName) {
       case "DollarSign":
-        return <DollarSign className="w-4 h-4 text-emerald-400" />;
+        return <DollarSign className="w-4 h-4 text-emerald-600" />;
       case "Boxes":
-        return <Boxes className="w-4 h-4 text-cyan-400" />;
+        return <Boxes className="w-4 h-4 text-cyan-600" />;
       case "ClipboardList":
-        return <ClipboardList className="w-4 h-4 text-indigo-400" />;
+        return <ClipboardList className="w-4 h-4 text-purple-600" />;
       case "Gauge":
-        return <Gauge className="w-4 h-4 text-blue-400" />;
+        return <Gauge className="w-4 h-4 text-blue-600" />;
       case "Layers":
-        return <Layers className="w-4 h-4 text-purple-400" />;
+        return <Layers className="w-4 h-4 text-indigo-600" />;
       case "CheckCircle2":
-        return <CheckCircle2 className="w-4 h-4 text-emerald-400" />;
+        return <CheckCircle2 className="w-4 h-4 text-emerald-600" />;
       case "ShieldAlert":
-        return <ShieldAlert className="w-4 h-4 text-emerald-400" />;
+        return <ShieldAlert className="w-4 h-4 text-emerald-600" />;
       case "Cpu":
-        return <Cpu className="w-4 h-4 text-purple-400" />;
+        return <Cpu className="w-4 h-4 text-purple-600" />;
       case "AlertTriangle":
-        return <AlertTriangle className="w-4 h-4 text-amber-400" />;
+        return <AlertTriangle className="w-4 h-4 text-amber-600" />;
       default:
-        return <Factory className="w-4 h-4 text-cyan-400" />;
+        return <Factory className="w-4 h-4 text-cyan-600" />;
     }
   };
 
   const getIconBg = (iconName: string) => {
     switch (iconName) {
       case "DollarSign":
-        return "bg-emerald-500/10 border-emerald-500/20";
+        return "bg-emerald-50 border-emerald-200";
       case "Boxes":
-        return "bg-cyan-500/10 border-cyan-500/20";
+        return "bg-cyan-50 border-cyan-200";
       case "ClipboardList":
-        return "bg-indigo-500/10 border-indigo-500/20";
+        return "bg-purple-50 border-purple-200";
       case "Gauge":
-        return "bg-blue-500/10 border-blue-500/20";
+        return "bg-blue-50 border-blue-200";
       case "Layers":
-        return "bg-purple-500/10 border-purple-500/20";
+        return "bg-indigo-50 border-indigo-200";
       case "CheckCircle2":
-        return "bg-emerald-500/10 border-emerald-500/20";
+        return "bg-emerald-50 border-emerald-200";
+      case "ShieldAlert":
+        return "bg-emerald-50 border-emerald-200";
+      case "Cpu":
+        return "bg-purple-50 border-purple-200";
+      case "AlertTriangle":
+        return "bg-amber-50 border-amber-200";
       default:
-        return "bg-cyan-500/10 border-cyan-500/20";
+        return "bg-cyan-50 border-cyan-200";
     }
   };
 
   const resolveHref = () => {
     if (data.href) return data.href;
-    if (data.id.includes("inventory") || data.id.includes("stock") || data.id.includes("sku")) return "/inventory";
+    if (
+      data.id.includes("inventory") ||
+      data.id.includes("stock") ||
+      data.id.includes("sku")
+    )
+      return "/inventory";
     if (data.id.includes("order")) return "/orders";
-    if (data.id.includes("oee") || data.id.includes("production")) return "/production";
+    if (data.id.includes("oee") || data.id.includes("production"))
+      return "/production";
     if (data.id.includes("quality")) return "/quality";
     return "/dashboard";
   };
@@ -85,41 +97,48 @@ export function KPIStatCard({ data }: KPIStatCardProps) {
     (data.trend === "down" && data.isPositive);
 
   const cardContent = (
-    <div className="group relative overflow-hidden rounded-2xl bg-slate-900/80 border border-slate-800/90 p-4 sm:p-4.5 shadow-md hover:border-cyan-500/40 hover:bg-slate-900/95 hover:shadow-lg hover:shadow-cyan-500/5 transition-all duration-200 flex flex-col justify-between h-full cursor-pointer">
+    <div className="group relative overflow-hidden rounded-2xl bg-white border border-slate-200/90 p-4 sm:p-4.5 shadow-xs hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between h-full cursor-pointer">
       <div>
-        <div className="flex items-start justify-between gap-2 mb-2.5">
-          <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-400 group-hover:text-cyan-300 transition-colors line-clamp-1">
+        {/* Title & Icon Header */}
+        <div className="flex items-start justify-between gap-2 mb-2 min-h-[34px]">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700 group-hover:text-blue-700 transition-colors leading-snug break-words">
             {data.title}
           </span>
-          <div className="flex items-center gap-1.5 shrink-0">
-            <div className={`p-1.5 rounded-xl border ${getIconBg(data.iconName)}`}>
+          <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+            <div
+              className={`p-1.5 rounded-xl border ${getIconBg(
+                data.iconName
+              )} group-hover:scale-105 transition-transform`}
+            >
               {getIcon(data.iconName)}
             </div>
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity text-cyan-400">
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-600">
               <ArrowUpRight className="w-3.5 h-3.5" />
             </div>
           </div>
         </div>
 
-        {/* Big Value */}
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-xl sm:text-2xl lg:text-[26px] font-extrabold tracking-tight text-white font-mono group-hover:text-cyan-200 transition-colors">
+        {/* Big Metric Value */}
+        <div className="flex items-baseline gap-1.5 mt-1">
+          <span className="text-xl sm:text-2xl lg:text-[26px] font-extrabold tracking-tight text-slate-900 font-mono group-hover:text-blue-700 transition-colors">
             {data.value}
           </span>
           {data.unit && (
-            <span className="text-xs text-slate-400 font-medium">{data.unit}</span>
+            <span className="text-xs text-slate-500 font-medium">
+              {data.unit}
+            </span>
           )}
         </div>
       </div>
 
-      {/* Comparison & Trend pill */}
-      <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs gap-2">
+      {/* Comparison & High-Contrast Trend Pill */}
+      <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs gap-2">
         <div className="flex items-center gap-1.5 shrink-0">
           <span
-            className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-semibold font-mono ${
+            className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10.5px] sm:text-[11px] font-bold font-mono ${
               isTrendGood
-                ? "bg-emerald-950/70 text-emerald-400 border border-emerald-800/60"
-                : "bg-rose-950/70 text-rose-400 border border-rose-800/60"
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                : "bg-rose-50 text-rose-700 border border-rose-200"
             }`}
           >
             {data.trend === "up" ? (
@@ -130,12 +149,14 @@ export function KPIStatCard({ data }: KPIStatCardProps) {
               <Minus className="w-3 h-3" />
             )}
             <span>
-              {data.changePercent > 0 ? `+${data.changePercent}%` : `${data.changePercent}%`}
+              {data.changePercent > 0
+                ? `+${data.changePercent}%`
+                : `${data.changePercent}%`}
             </span>
           </span>
         </div>
 
-        <span className="text-[10px] sm:text-[11px] text-slate-400 truncate text-right font-medium">
+        <span className="text-[10px] sm:text-[10.5px] text-slate-500 text-right font-medium leading-tight">
           {data.periodLabel}
         </span>
       </div>
@@ -143,7 +164,10 @@ export function KPIStatCard({ data }: KPIStatCardProps) {
   );
 
   return (
-    <Link href={href} className="block h-full focus:outline-none focus:ring-2 focus:ring-cyan-500/50 rounded-2xl">
+    <Link
+      href={href}
+      className="block h-full focus:outline-none focus:ring-2 focus:ring-blue-500/50 rounded-2xl"
+    >
       {cardContent}
     </Link>
   );
