@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { ErpLayout } from "@/components/layout/erp-layout";
 import { ProductionKpiCards } from "@/components/production/production-kpi-cards";
 import {
@@ -14,6 +14,7 @@ import { ProductPerformance } from "@/components/production/product-performance"
 import { MachinePerformance } from "@/components/production/machine-performance";
 import { ProductionOrderDetails } from "@/components/production/production-order-details";
 import { ProductionOrderEditModal } from "@/components/production/production-order-edit-modal";
+import { NewProductionOrderModal } from "@/components/production/new-production-order-modal";
 import {
   INITIAL_PRODUCTION_KPIS,
   DAILY_PRODUCTION_PERFORMANCE,
@@ -27,46 +28,51 @@ import {
 } from "@/types/production";
 import {
   Factory,
-  Sparkles,
   RotateCw,
   Plus,
   CheckCircle2,
-  AlertCircle,
-  FileSpreadsheet,
 } from "lucide-react";
 
 export default function ProductionPage() {
   // Production Orders State from PostgreSQL
   const [orders, setOrders] = useState<ProductionOrder[]>([]);
   const [kpis, setKpis] = useState(INITIAL_PRODUCTION_KPIS);
+  const [products, setProducts] = useState<{ id: number; code: string; name: string }[]>([]);
+  const [machines, setMachines] = useState<{ id: number; code: string; name: string }[]>([]);
+  const [shifts, setShifts] = useState<{ id: number; name: string }[]>([]);
+  const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState<boolean>(false);
+
+  const loadData = useCallback(async (isMounted?: () => boolean) => {
+    try {
+      const res = await fetch("/api/production", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        if ((!isMounted || isMounted()) && data.status === "success") {
+          setOrders(data.orders || []);
+          if (data.kpis) setKpis(data.kpis);
+          if (data.products) setProducts(data.products);
+          if (data.machines) setMachines(data.machines);
+          if (data.shifts) setShifts(data.shifts);
+        }
+      }
+    } catch (e) {
+      console.warn("Using default production state", e);
+    }
+  }, []);
 
   useEffect(() => {
-    let isMounted = true;
-    async function loadData() {
-      try {
-        const res = await fetch("/api/production", { cache: "no-store" });
-        if (res.ok && isMounted) {
-          const data = await res.json();
-          if (data.status === "success" && isMounted) {
-            setOrders(data.orders || []);
-            if (data.kpis) setKpis(data.kpis);
-          }
-        }
-      } catch (e) {
-        console.warn("Using default production state", e);
-      }
-    }
-
-    loadData();
-    const interval = setInterval(loadData, 4000);
-    window.addEventListener("focus", loadData);
+    let mounted = true;
+    loadData(() => mounted);
+    const interval = setInterval(() => loadData(() => mounted), 4000);
+    const handleFocus = () => loadData(() => mounted);
+    window.addEventListener("focus", handleFocus);
 
     return () => {
-      isMounted = false;
+      mounted = false;
       clearInterval(interval);
-      window.removeEventListener("focus", loadData);
+      window.removeEventListener("focus", handleFocus);
     };
-  }, []);
+  }, [loadData]);
 
   // Filter State
   const [filters, setFilters] = useState<ProductionFilterState>({
@@ -150,76 +156,84 @@ export default function ProductionPage() {
     setTimeout(() => setActionFeedback(null), 3500);
   };
 
-  const handleTogglePause = (orderId: string) => {
-    setOrders((prev) =>
-      prev.map((ord) => {
-        if (ord.id === orderId) {
-          const nextStatus = ord.status === "Paused" ? "In Progress" : "Paused";
-          showNotification(
-            `Order ${ord.orderNumber} is now ${nextStatus === "Paused" ? "Paused" : "Resumed"}`
-          );
-          return {
-            ...ord,
-            status: nextStatus,
-            updatedAt: new Date().toISOString(),
-          };
-        }
-        return ord;
-      })
-    );
+  // 1. Toggle Pause / Resume Order
+  const handleTogglePause = async (orderId: string) => {
+    const currentOrder = orders.find((o) => o.id === orderId);
+    const nextStatus = currentOrder?.status === "Paused" ? "In Progress" : "Paused";
+
+    try {
+      const res = await fetch("/api/production", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "updateStatus", orderId, newStatus: nextStatus }),
+      });
+      if (res.ok) {
+        showNotification(`Order ${currentOrder?.orderNumber || orderId} is now ${nextStatus}`);
+        loadData();
+      }
+    } catch (e: any) {
+      showNotification(`Failed to update status: ${e.message}`);
+    }
   };
 
-  const handleCompleteOrder = (orderId: string) => {
-    setOrders((prev) =>
-      prev.map((ord) => {
-        if (ord.id === orderId) {
-          showNotification(`Order ${ord.orderNumber} marked as Completed`);
-          return {
-            ...ord,
-            status: "Completed",
-            actualQuantity: ord.plannedQuantity,
-            goodQuantity: ord.plannedQuantity - ord.rejectedQuantity,
-            efficiency: 100.0,
-            actualEnd: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          };
-        }
-        return ord;
-      })
-    );
-    // Increment completed orders in KPI
-    setKpis((prev) => ({
-      ...prev,
-      completedOrders: prev.completedOrders + 1,
-    }));
+  // 2. Complete Order
+  const handleCompleteOrder = async (orderId: string) => {
+    const currentOrder = orders.find((o) => o.id === orderId);
+    try {
+      const res = await fetch("/api/production", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "completeOrder", orderId }),
+      });
+      if (res.ok) {
+        showNotification(`Order ${currentOrder?.orderNumber || orderId} marked as Completed!`);
+        loadData();
+      }
+    } catch (e: any) {
+      showNotification(`Failed to complete order: ${e.message}`);
+    }
   };
 
-  const handleSaveOrderEdit = (updated: {
+  // 3. Edit Order Parameters
+  const handleSaveOrderEdit = async (updated: {
     id: string;
     plannedQuantity: number;
     priority: ProductionPriority;
     notes: string;
   }) => {
-    setOrders((prev) =>
-      prev.map((ord) => {
-        if (ord.id === updated.id) {
-          const efficiency =
-            updated.plannedQuantity > 0
-              ? Number(((ord.actualQuantity / updated.plannedQuantity) * 100).toFixed(1))
-              : 0;
-          showNotification(`Order ${ord.orderNumber} parameters updated successfully`);
-          return {
-            ...ord,
-            plannedQuantity: updated.plannedQuantity,
-            priority: updated.priority,
-            notes: updated.notes,
-            efficiency,
-            updatedAt: new Date().toISOString(),
-          };
-        }
-        return ord;
-      })
-    );
+    try {
+      const res = await fetch("/api/production", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "editOrder", ...updated }),
+      });
+      if (res.ok) {
+        showNotification(`Order parameters updated successfully!`);
+        loadData();
+      }
+    } catch (e: any) {
+      showNotification(`Failed to save edit: ${e.message}`);
+    }
+  };
+
+  // 4. Create New Production Order
+  const handleCreateNewOrder = async (data: {
+    productId: number;
+    machineId: number;
+    shiftId: number;
+    plannedQuantity: number;
+    plannedHours: number;
+  }) => {
+    const res = await fetch("/api/production", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "createOrder", ...data }),
+    });
+    if (!res.ok) {
+      throw new Error("API request failed");
+    }
+    showNotification("New production order scheduled successfully!");
+    loadData();
   };
 
   return (
@@ -253,6 +267,7 @@ export default function ProductionPage() {
           <div className="flex items-center gap-2.5">
             <button
               onClick={() => {
+                loadData();
                 showNotification("Production schedules refreshed with live telemetry");
               }}
               className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 transition shadow-xs"
@@ -263,9 +278,7 @@ export default function ProductionPage() {
             </button>
 
             <button
-              onClick={() => {
-                alert("Create Production Order modal ready for backend integration.");
-              }}
+              onClick={() => setIsNewOrderModalOpen(true)}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-xs font-extrabold text-white shadow-md shadow-blue-500/20 transition active:scale-95"
             >
               <Plus className="w-4 h-4 text-white" />
@@ -274,7 +287,7 @@ export default function ProductionPage() {
           </div>
         </div>
 
-        {/* 2. 6 KPI Cards (Clickable with full title text) */}
+        {/* 2. 6 KPI Cards */}
         <section aria-label="Production Key Performance Indicators">
           <ProductionKpiCards
             kpi={kpis}
@@ -366,6 +379,16 @@ export default function ProductionPage() {
           order={editingOrder}
           onClose={() => setEditingOrder(null)}
           onSave={handleSaveOrderEdit}
+        />
+
+        {/* New Work Order Modal */}
+        <NewProductionOrderModal
+          isOpen={isNewOrderModalOpen}
+          onClose={() => setIsNewOrderModalOpen(false)}
+          onSubmit={handleCreateNewOrder}
+          products={products}
+          machines={machines}
+          shifts={shifts}
         />
       </div>
     </ErpLayout>

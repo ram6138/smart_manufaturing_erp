@@ -1,12 +1,15 @@
 // Matches PostgreSQL Schema Entities for Production Module
 
 export type ProductionOrderStatus =
+  | "Planned"
   | "Scheduled"
   | "Released"
   | "In Progress"
   | "Paused"
   | "Completed"
-  | "Cancelled";
+  | "Cancelled"
+  | "Pending"
+  | "Draft";
 
 export type ProductionPriority = "Low" | "Normal" | "High" | "Urgent";
 

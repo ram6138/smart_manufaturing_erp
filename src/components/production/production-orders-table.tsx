@@ -118,7 +118,7 @@ export function ProductionOrdersTable({
                     </div>
                     <div className="text-[10px] text-slate-500 flex items-center gap-1">
                       <Clock className="w-3 h-3 text-slate-500" />
-                      {order.shift} Shift
+                      {order.shift?.includes("Shift") ? order.shift : `${order.shift || "Day"} Shift`}
                     </div>
                   </td>
 
@@ -309,7 +309,7 @@ export function ProductionOrdersTable({
               {/* Machine & Shift info */}
               <div className="flex items-center justify-between text-[11px] text-slate-400">
                 <span>{order.machine}</span>
-                <span>{order.shift} Shift</span>
+                <span>{order.shift?.includes("Shift") ? order.shift : `${order.shift || "Day"} Shift`}</span>
               </div>
 
               {/* Actions */}

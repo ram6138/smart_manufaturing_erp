@@ -43,10 +43,25 @@ export function ProductionStatusBadge({ status }: { status: ProductionOrderStatu
           Released
         </span>
       );
+    case "Planned":
+    case "Draft":
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-950/80 text-purple-300 border border-purple-800/80">
+          <Clock className="w-3 h-3 text-purple-400" />
+          Planned
+        </span>
+      );
+    case "Pending":
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-950/80 text-amber-300 border border-amber-800/80">
+          <Clock className="w-3 h-3 text-amber-400" />
+          Pending
+        </span>
+      );
     case "Scheduled":
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
-          <Clock className="w-3 h-3" />
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-950/80 text-indigo-300 border border-indigo-800/80">
+          <Clock className="w-3 h-3 text-indigo-400" />
           Scheduled
         </span>
       );
@@ -58,7 +73,12 @@ export function ProductionStatusBadge({ status }: { status: ProductionOrderStatu
         </span>
       );
     default:
-      return null;
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+          <Clock className="w-3 h-3" />
+          {status || "Planned"}
+        </span>
+      );
   }
 }
 

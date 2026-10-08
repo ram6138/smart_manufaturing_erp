@@ -13,7 +13,7 @@ export async function GET() {
         po.production_order_id::text as id,
         CONCAT('PO-', LPAD(po.production_order_id::text, 4, '0')) as "orderNumber",
         po.batch_number as "batchNumber",
-        COALESCE(p.product_name, 'Biscuit Product') as product,
+        COALESCE(p.product_name, 'Biscuit - Coconut') as product,
         COALESCE(p.product_code, 'FG-001') as "productCode",
         COALESCE(m.machine_name, 'Baking Line 1') as machine,
         COALESCE(m.machine_code, 'MCH-001') as "machineCode",
@@ -22,12 +22,21 @@ export async function GET() {
         COALESCE(po.actual_quantity, 0)::float as "actualQuantity",
         COALESCE(po.good_quantity, 0)::float as "goodQuantity",
         COALESCE(po.rejected_quantity, 0)::float as "rejectedQuantity",
-        COALESCE(po.production_efficiency_pct, 95.0)::float as efficiency,
-        COALESCE(po.rejection_rate_pct, 1.5)::float as "rejectionRate",
+        CASE 
+          WHEN po.actual_quantity IS NOT NULL AND po.actual_quantity > 0 AND po.planned_quantity > 0 
+          THEN ROUND((po.actual_quantity / po.planned_quantity * 100)::numeric, 1)::float
+          WHEN po.production_status = 'Completed' THEN 100.0
+          ELSE 0.0 
+        END as efficiency,
+        CASE 
+          WHEN po.actual_quantity IS NOT NULL AND po.actual_quantity > 0 AND po.rejected_quantity IS NOT NULL 
+          THEN ROUND((po.rejected_quantity / po.actual_quantity * 100)::numeric, 2)::float
+          ELSE 0.0 
+        END as "rejectionRate",
         COALESCE(po.downtime_minutes, 0)::int as "downtimeMinutes",
         COALESCE(po.planned_hours, 8.0)::float as "plannedHours",
         COALESCE(po.actual_hours, 8.0)::float as "actualHours",
-        COALESCE(po.production_status, 'In Progress') as status,
+        COALESCE(po.production_status, 'Planned') as status,
         'High' as priority,
         COALESCE(po.production_date, CURRENT_DATE)::text as "startDate",
         (COALESCE(po.production_date, CURRENT_DATE) + INTERVAL '1 day')::text as "dueDate",
@@ -41,7 +50,14 @@ export async function GET() {
 
     const orders = ordersRes.rows;
 
-    // 2. Compute Aggregates
+    // 2. Fetch products, machines, shifts for New Order Form
+    const [productsRes, machinesRes, shiftsRes] = await Promise.all([
+      query(`SELECT product_id as id, product_code as code, product_name as name FROM products;`),
+      query(`SELECT machine_id as id, machine_code as code, machine_name as name FROM machines;`),
+      query(`SELECT shift_id as id, shift_name as name FROM shifts;`),
+    ]);
+
+    // 3. Compute Aggregates
     const totalPlanned = orders.reduce((sum: number, o: any) => sum + (o.plannedQuantity || 0), 0);
     const totalActual = orders.reduce((sum: number, o: any) => sum + (o.actualQuantity || 0), 0);
     const totalGood = orders.reduce((sum: number, o: any) => sum + (o.goodQuantity || 0), 0);
@@ -52,55 +68,6 @@ export async function GET() {
     const avgEfficiency = orders.length > 0
       ? (orders.reduce((sum: number, o: any) => sum + (o.efficiency || 0), 0) / orders.length).toFixed(1)
       : '95.5';
-
-    // 3. KPI Cards
-    const kpis = [
-      {
-        id: 'total_output',
-        title: 'Total Output',
-        value: totalActual.toLocaleString(),
-        unit: 'Packs',
-        change: '+8.4%',
-        trend: 'up',
-        target: totalPlanned.toLocaleString(),
-      },
-      {
-        id: 'avg_efficiency',
-        title: 'Avg Efficiency (OEE)',
-        value: `${avgEfficiency}%`,
-        unit: '%',
-        change: '+2.1%',
-        trend: 'up',
-        target: '92.0%',
-      },
-      {
-        id: 'rejection_rate',
-        title: 'Rejection Rate',
-        value: totalActual > 0 ? `${((totalRejected / totalActual) * 100).toFixed(2)}%` : '1.35%',
-        unit: '%',
-        change: '-0.4%',
-        trend: 'down',
-        target: '< 2.0%',
-      },
-      {
-        id: 'total_downtime',
-        title: 'Total Downtime',
-        value: `${totalDowntime}`,
-        unit: 'Mins',
-        change: '-15 mins',
-        trend: 'down',
-        target: '< 60 mins',
-      },
-      {
-        id: 'in_progress_jobs',
-        title: 'Active Work Orders',
-        value: `${inProgressCount}`,
-        unit: 'Jobs',
-        change: `${completedCount} Done`,
-        trend: 'neutral',
-        target: `${orders.length} Total`,
-      },
-    ];
 
     // 4. Product Performance Breakdown
     const prodMap: Record<string, { planned: number; actual: number; good: number; rejected: number }> = {};
@@ -120,22 +87,22 @@ export async function GET() {
       actualQuantity: data.actual,
       goodQuantity: data.good,
       rejectedQuantity: data.rejected,
-      efficiency: data.planned > 0 ? Number(((data.actual / data.planned) * 100).toFixed(1)) : 95.0,
-      rejectionRate: data.actual > 0 ? Number(((data.rejected / data.actual) * 100).toFixed(2)) : 1.2,
+      efficiency: data.planned > 0 ? Number(((data.actual / data.planned) * 100).toFixed(1)) : 0,
+      rejectionRate: data.actual > 0 ? Number(((data.rejected / data.actual) * 100).toFixed(2)) : 0,
     }));
 
     const kpiSummary = {
-      plannedProduction: totalPlanned || 22500,
+      plannedProduction: totalPlanned || 0,
       plannedChangePercent: 8.4,
-      actualProduction: totalActual || 18450,
+      actualProduction: totalActual || 0,
       actualChangePercent: 5.2,
-      productionEfficiency: Number(avgEfficiency) || 96.5,
+      productionEfficiency: Number(avgEfficiency) || 92.5,
       efficiencyChangePercent: 2.1,
-      rejectedQuantity: totalRejected || 260,
+      rejectedQuantity: totalRejected || 0,
       rejectedChangePercent: -0.4,
-      downtimeHours: Number((totalDowntime / 60).toFixed(1)) || 0.9,
+      downtimeHours: Number((totalDowntime / 60).toFixed(1)) || 0,
       downtimeChangePercent: -12.5,
-      completedOrders: completedCount || 2,
+      completedOrders: completedCount || 0,
       completedChangePercent: 15.0,
     };
 
@@ -143,6 +110,9 @@ export async function GET() {
       status: 'success',
       orders,
       kpis: kpiSummary,
+      products: productsRes.rows,
+      machines: machinesRes.rows,
+      shifts: shiftsRes.rows,
       productPerformance,
       performanceTrend: DAILY_PRODUCTION_PERFORMANCE,
     });
@@ -187,15 +157,55 @@ export async function POST(req: Request) {
 
     if (action === 'updateStatus') {
       const { orderId, newStatus } = body;
+      const cleanId = parseInt(String(orderId).replace('PO-', ''), 10);
+
       await query(`
         UPDATE production_orders 
         SET production_status = $1 
         WHERE production_order_id = $2;
-      `, [newStatus, orderId]);
+      `, [newStatus, cleanId]);
 
       return NextResponse.json({
         status: 'success',
         message: `Production Order status updated to '${newStatus}'!`,
+      });
+    }
+
+    if (action === 'completeOrder') {
+      const { orderId } = body;
+      const cleanId = parseInt(String(orderId).replace('PO-', ''), 10);
+
+      await query(`
+        UPDATE production_orders 
+        SET 
+          production_status = 'Completed',
+          actual_quantity = planned_quantity,
+          good_quantity = planned_quantity - COALESCE(rejected_quantity, 0),
+          production_efficiency_pct = 100.0
+        WHERE production_order_id = $1;
+      `, [cleanId]);
+
+      return NextResponse.json({
+        status: 'success',
+        message: `Production Order marked as Completed!`,
+      });
+    }
+
+    if (action === 'editOrder') {
+      const { id, plannedQuantity } = body;
+      const cleanId = parseInt(String(id).replace('PO-', ''), 10);
+
+      if (plannedQuantity !== undefined) {
+        await query(`
+          UPDATE production_orders 
+          SET planned_quantity = $1 
+          WHERE production_order_id = $2;
+        `, [plannedQuantity, cleanId]);
+      }
+
+      return NextResponse.json({
+        status: 'success',
+        message: `Production Order updated successfully!`,
       });
     }
 
