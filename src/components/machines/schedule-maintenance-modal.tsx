@@ -9,7 +9,7 @@ import {
   User,
   FileText,
   Clock,
-  DollarSign,
+  IndianRupee,
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
@@ -251,7 +251,7 @@ export function ScheduleMaintenanceModal({
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Est. Cost ($ USD)
+                Est. Cost (₹ INR)
               </label>
               <div className="relative">
                 <input
@@ -262,7 +262,7 @@ export function ScheduleMaintenanceModal({
                   onChange={(e) => setEstimatedCost(Number(e.target.value))}
                   className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-cyan-500 transition-colors"
                 />
-                <DollarSign className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                <IndianRupee className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
               </div>
             </div>
           </div>
@@ -287,7 +287,7 @@ export function ScheduleMaintenanceModal({
           <div className="bg-slate-950/60 rounded-lg p-3 border border-slate-800 text-xs text-slate-400 flex items-start gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
             <span>
-              This will update the machine record in mock state and log a scheduled work order. Ready for PostgreSQL schema integration.
+              This will update the machine record and log a scheduled work order.
             </span>
           </div>
 

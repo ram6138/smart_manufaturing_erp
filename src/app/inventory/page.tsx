@@ -99,7 +99,7 @@ export default function InventoryPage() {
       }
     } catch (err: any) {
       console.warn("Using fallback inventory data:", err.message);
-      if (!isMounted || isMounted()) setErrorMessage("Could not connect to PostgreSQL live stream. Showing cached fallback data.");
+      if (!isMounted || isMounted()) setErrorMessage("Could not connect to live stream. Showing cached fallback data.");
     } finally {
       if (!isMounted || isMounted()) setIsLoading(false);
     }
@@ -198,7 +198,7 @@ export default function InventoryPage() {
         }),
       });
       if (res.ok) {
-        showNotification(`Stock adjusted in PostgreSQL database successfully!`);
+        showNotification(`Stock adjusted successfully!`);
         fetchInventoryData();
       } else {
         throw new Error("Failed to update database");
@@ -264,7 +264,7 @@ export default function InventoryPage() {
       });
       const data = await res.json();
       showNotification(
-        `Purchase Requisition ${data.requestNumber || "PR-REC"} for ${params.requestedQuantity} ${params.unit} saved to PostgreSQL`
+        `Purchase Requisition ${data.requestNumber || "PR-REC"} for ${params.requestedQuantity} ${params.unit} saved successfully`
       );
     } catch (e) {
       showNotification(`Purchase Request submitted to Procurement`);
@@ -298,9 +298,9 @@ export default function InventoryPage() {
                 Warehouse & Supply Chain
               </span>
               {isDbLive ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
                   <Database className="w-3 h-3 text-cyan-400" />
-                  PostgreSQL Live
+                  Live Connected
                 </span>
               ) : (
                 <span className="text-xs text-slate-500 font-mono hidden sm:inline">
@@ -312,7 +312,7 @@ export default function InventoryPage() {
               Inventory Management
             </h1>
             <p className="text-sm text-slate-400 mt-0.5">
-              Live stock levels, material availability and warehouse transactions from PostgreSQL.
+              Live stock levels, material availability and warehouse transactions.
             </p>
           </div>
 
@@ -320,7 +320,7 @@ export default function InventoryPage() {
             <button
               onClick={() => {
                 fetchInventoryData();
-                showNotification("Synchronizing latest stock levels from PostgreSQL...");
+                showNotification("Synchronizing latest stock levels...");
               }}
               disabled={isLoading}
               className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-200 transition disabled:opacity-50"

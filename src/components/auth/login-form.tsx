@@ -23,7 +23,7 @@ import {
   Wrench,
   Truck,
   Users,
-  DollarSign,
+  IndianRupee,
 } from "lucide-react";
 
 export function LoginForm() {
@@ -94,7 +94,7 @@ export function LoginForm() {
       case "HR Manager":
         return <Users className="w-3.5 h-3.5 text-indigo-400" />;
       case "Finance Manager":
-        return <DollarSign className="w-3.5 h-3.5 text-teal-400" />;
+        return <IndianRupee className="w-3.5 h-3.5 text-teal-400" />;
       default:
         return <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />;
     }

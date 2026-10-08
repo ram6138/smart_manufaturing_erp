@@ -2,7 +2,7 @@
 
 import React from "react";
 import {
-  DollarSign,
+  IndianRupee,
   TrendingUp,
   TrendingDown,
   ShoppingBag,
@@ -48,7 +48,7 @@ export function FinanceKpiCards({
       title: "Total Revenue",
       value: formatCurrency(totalRevenue),
       subtext: "Current fiscal month turnover",
-      icon: DollarSign,
+      icon: IndianRupee,
       iconColor: "text-emerald-400",
       iconBg: "bg-emerald-500/10 border-emerald-500/20",
       trend: "+4.2% vs last month",

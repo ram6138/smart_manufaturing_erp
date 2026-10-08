@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { DollarSign, TrendingUp, Wallet, ArrowUpRight, PieChart as PieIcon } from "lucide-react";
+import { IndianRupee, TrendingUp, Wallet, ArrowUpRight, PieChart as PieIcon } from "lucide-react";
 
 interface FinanceIntelligenceProps {
   data: FinanceIntelligenceData;
@@ -34,7 +34,7 @@ export function FinanceIntelligence({ data }: FinanceIntelligenceProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-700/40">
         <div className="flex items-center gap-2">
           <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <DollarSign className="w-5 h-5" />
+            <IndianRupee className="w-5 h-5" />
           </div>
           <div>
             <h3 className="text-base font-semibold text-slate-100">Finance Intelligence & Margins</h3>

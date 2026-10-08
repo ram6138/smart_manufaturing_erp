@@ -24,7 +24,7 @@ export interface InventoryItem {
   reservedQuantity: number; // reserved for scheduled production work orders
   reorderLevel: number;
   normalStockLevel: number;
-  unitCost: number; // in USD or standard ERP currency
+  unitCost: number; // in INR (₹) or standard ERP currency
   locationBin: string; // e.g. Bin-A12, Rack-04
   minOrderQuantity: number;
   leadTimeDays: number;

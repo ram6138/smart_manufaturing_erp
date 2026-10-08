@@ -120,7 +120,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       status: 'success',
-      message: 'Quality inspection record saved to PostgreSQL successfully!',
+      message: 'Quality inspection record saved successfully!',
       inspectionId: insertRes.rows[0].quality_inspection_id,
     });
   } catch (error: any) {

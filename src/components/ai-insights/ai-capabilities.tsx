@@ -7,7 +7,7 @@ import {
   ShieldCheck,
   TrendingUp,
   Boxes,
-  DollarSign,
+  IndianRupee,
   Users,
   Sparkles,
   Layers,
@@ -25,7 +25,7 @@ export function AiCapabilities() {
       case "cap-04":
         return Boxes;
       case "cap-05":
-        return DollarSign;
+        return IndianRupee;
       case "cap-06":
         return Users;
       default:

@@ -190,7 +190,7 @@ export default function MachinesPage() {
       console.warn(e);
     }
 
-    setSuccessToast(`Work order ${newRecord.maintenanceId} successfully scheduled in PostgreSQL!`);
+    setSuccessToast(`Work order ${newRecord.maintenanceId} successfully scheduled!`);
     setTimeout(() => {
       setSuccessToast(null);
     }, 4500);
@@ -200,7 +200,7 @@ export default function MachinesPage() {
     setIsRefreshing(true);
     fetchMachines().finally(() => {
       setIsRefreshing(false);
-      setSuccessToast("Sensor streams & AI predictive health scores updated from PostgreSQL");
+      setSuccessToast("Sensor streams & AI predictive health scores updated");
       setTimeout(() => setSuccessToast(null), 3500);
     });
   };
@@ -225,7 +225,7 @@ export default function MachinesPage() {
               </h1>
             </div>
             <p className="text-sm text-slate-400 mt-1">
-              Live factory machines, sensor streams, predictive maintenance & service logs from PostgreSQL.
+              Live factory machines, sensor streams, predictive maintenance & service logs.
             </p>
           </div>
 

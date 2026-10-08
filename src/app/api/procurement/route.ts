@@ -341,7 +341,7 @@ export async function POST(req: Request) {
 
       return NextResponse.json({
         status: 'success',
-        message: `Purchase Order ${poNum} issued to supplier successfully in PostgreSQL!`,
+        message: `Purchase Order ${poNum} issued to supplier successfully!`,
         order: insertPO.rows[0],
       });
     }

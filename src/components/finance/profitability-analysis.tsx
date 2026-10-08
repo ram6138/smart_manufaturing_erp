@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { TrendingUp, Award, DollarSign, Percent } from "lucide-react";
+import { TrendingUp, Award, IndianRupee, Percent } from "lucide-react";
 
 interface ProfitabilityAnalysisProps {
   products: ProductProfitability[];

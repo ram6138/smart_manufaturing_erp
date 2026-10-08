@@ -10,7 +10,7 @@ import {
   X,
   Boxes,
   Building2,
-  DollarSign,
+  IndianRupee,
   TrendingUp,
   History,
   Calendar,
@@ -131,14 +131,14 @@ export function InventoryItemDetails({
         {/* 2. Procurement & Reorder Parameters */}
         <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs space-y-2">
           <div className="font-semibold text-slate-300 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
-            <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+            <IndianRupee className="w-3.5 h-3.5 text-emerald-400" />
             Costing & Reorder Thresholds
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
             <div>
               <span className="text-slate-400 block">Unit Cost:</span>
-              <span className="font-mono font-semibold text-slate-200">${item.unitCost.toFixed(2)}</span>
+              <span className="font-mono font-semibold text-slate-200">₹{item.unitCost.toFixed(2)}</span>
             </div>
             <div>
               <span className="text-slate-400 block">Reorder Level:</span>

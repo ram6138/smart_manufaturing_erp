@@ -125,12 +125,12 @@ export async function GET() {
       {
         id: 'kpi-inventory-val',
         title: 'Inventory Valuation',
-        value: `$${totalValuationFormatted}`,
+        value: `₹${totalValuationFormatted}`,
         changePercent: 6.4,
         trend: 'up',
         isPositive: true,
-        periodLabel: 'Live PostgreSQL Value',
-        iconName: 'DollarSign',
+        periodLabel: 'Live System Value',
+        iconName: 'IndianRupee',
         href: '/inventory',
       },
       {

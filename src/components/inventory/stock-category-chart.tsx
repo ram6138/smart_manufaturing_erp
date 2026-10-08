@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from "recharts";
 import { StockCategorySummary } from "@/types/inventory";
-import { Layers, DollarSign, Boxes } from "lucide-react";
+import { Layers, IndianRupee, Boxes } from "lucide-react";
 
 interface StockCategoryChartProps {
   categories: StockCategorySummary[];
@@ -29,7 +29,7 @@ export function StockCategoryChart({ categories }: StockCategoryChartProps) {
           <div className="flex justify-between items-center text-slate-300">
             <span>Total Valuation:</span>
             <span className="font-mono font-bold text-emerald-400">
-              ${item.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₹{item.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div className="flex justify-between items-center text-slate-400 text-[10px] pt-1 border-t border-slate-800">
@@ -58,7 +58,7 @@ export function StockCategoryChart({ categories }: StockCategoryChartProps) {
           </p>
         </div>
         <span className="text-xs font-mono text-emerald-400 font-semibold">
-          ${grandTotalValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} Total
+          ₹{grandTotalValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} Total
         </span>
       </div>
 
@@ -104,7 +104,7 @@ export function StockCategoryChart({ categories }: StockCategoryChartProps) {
                     {cat.category}
                   </span>
                   <span className="font-mono text-xs font-bold text-emerald-400">
-                    ${cat.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    ₹{cat.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
 

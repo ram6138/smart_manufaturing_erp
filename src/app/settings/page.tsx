@@ -125,7 +125,7 @@ export default function SettingsPage() {
               <span>Database & Edge Gateways</span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              PostgreSQL connection, OPC-UA machine gateways, and REST API connector endpoints.
+              Database connection, OPC-UA machine gateways, and REST API connector endpoints.
             </p>
             <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-400">
               Status: Module coming in Phase 2

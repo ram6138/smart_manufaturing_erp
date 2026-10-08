@@ -440,7 +440,7 @@ export const AI_DATA_FLOW_STEPS = [
   },
   {
     step: 2,
-    title: "PostgreSQL / Operational Data",
+    title: "Operational Database",
     subtitle: "Raw tables & events",
     icon: "Database",
   },

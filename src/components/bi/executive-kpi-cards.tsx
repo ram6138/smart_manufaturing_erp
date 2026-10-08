@@ -10,7 +10,7 @@ import {
   Activity,
   Truck,
   Users,
-  DollarSign,
+  IndianRupee,
   TrendingUp,
   TrendingDown,
 } from "lucide-react";
@@ -95,7 +95,7 @@ export function ExecutiveKpiCards({ data }: ExecutiveKpiCardsProps) {
       title: "Profit Margin",
       value: `${data.profitMargin.toFixed(1)}%`,
       subtext: "Operating gross margin",
-      icon: DollarSign,
+      icon: IndianRupee,
       iconColor: "text-emerald-400",
       iconBg: "bg-emerald-500/10 border-emerald-500/20",
       trend: "+1.2% net expansion",

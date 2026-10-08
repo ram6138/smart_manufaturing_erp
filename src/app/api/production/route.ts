@@ -180,7 +180,7 @@ export async function POST(req: Request) {
 
       return NextResponse.json({
         status: 'success',
-        message: `Production Order for batch ${nextBatch} created successfully in PostgreSQL!`,
+        message: `Production Order for batch ${nextBatch} created successfully!`,
         order: insertRes.rows[0],
       });
     }

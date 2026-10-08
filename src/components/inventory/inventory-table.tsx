@@ -10,7 +10,7 @@ import {
   ShoppingCart,
   Boxes,
   Building2,
-  DollarSign,
+  IndianRupee,
   AlertCircle,
 } from "lucide-react";
 
@@ -143,12 +143,12 @@ export function InventoryTable({
 
                 {/* Unit Cost */}
                 <td className="py-3.5 px-3 text-right font-mono text-slate-400 whitespace-nowrap">
-                  ${item.unitCost.toFixed(2)}
+                  ₹{item.unitCost.toFixed(2)}
                 </td>
 
                 {/* Stock Value (Calculated) */}
                 <td className="py-3.5 px-3 text-right font-mono font-bold text-slate-100 whitespace-nowrap">
-                  ${item.stockValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ₹{item.stockValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </td>
 
                 {/* Status Badge */}
@@ -257,7 +257,7 @@ export function InventoryTable({
             <div className="flex justify-between items-center text-xs">
               <span className="text-slate-400">Stock Value:</span>
               <span className="font-mono font-bold text-white">
-                ${item.stockValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ₹{item.stockValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
 

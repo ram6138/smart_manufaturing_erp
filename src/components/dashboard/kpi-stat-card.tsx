@@ -13,7 +13,7 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
-  DollarSign,
+  IndianRupee,
   Boxes,
   Layers,
   CheckCircle2,
@@ -28,7 +28,8 @@ export function KPIStatCard({ data }: KPIStatCardProps) {
   const getIcon = (iconName: string) => {
     switch (iconName) {
       case "DollarSign":
-        return <DollarSign className="w-4 h-4 text-emerald-600" />;
+      case "IndianRupee":
+        return <IndianRupee className="w-4 h-4 text-emerald-600" />;
       case "Boxes":
         return <Boxes className="w-4 h-4 text-cyan-600" />;
       case "ClipboardList":
@@ -53,6 +54,7 @@ export function KPIStatCard({ data }: KPIStatCardProps) {
   const getIconBg = (iconName: string) => {
     switch (iconName) {
       case "DollarSign":
+      case "IndianRupee":
         return "bg-emerald-50 border-emerald-200";
       case "Boxes":
         return "bg-cyan-50 border-cyan-200";

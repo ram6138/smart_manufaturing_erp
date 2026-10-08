@@ -4,7 +4,7 @@ import React from "react";
 import { ComputedInventoryItem } from "@/types/inventory";
 import {
   Boxes,
-  DollarSign,
+  IndianRupee,
   CheckCircle2,
   Lock,
   AlertTriangle,
@@ -42,7 +42,7 @@ export function InventoryKpiCards({ items }: InventoryKpiCardsProps) {
     {
       id: "stock_value",
       title: "Total Stock Value",
-      value: `$${totalStockValue.toLocaleString(undefined, {
+      value: `₹${totalStockValue.toLocaleString(undefined, {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
       })}`,
@@ -50,7 +50,7 @@ export function InventoryKpiCards({ items }: InventoryKpiCardsProps) {
       change: "+4.2%",
       isGood: true,
       label: "Valued at unit cost",
-      icon: DollarSign,
+      icon: IndianRupee,
       color: "text-emerald-400",
       bg: "bg-emerald-500/10 border-emerald-500/20",
     },

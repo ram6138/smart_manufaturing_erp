@@ -7,7 +7,7 @@ import {
   CheckCircle2,
   Truck,
   Users,
-  DollarSign,
+  IndianRupee,
   Sparkles,
   BarChart3,
   Settings,
@@ -137,7 +137,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
   {
     title: "Finance",
     href: "/finance",
-    icon: DollarSign,
+    icon: IndianRupee,
     description: "Unit costing, margins & budget approvals",
     allowedRoles: [
       "Admin",

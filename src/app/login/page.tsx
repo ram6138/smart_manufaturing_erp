@@ -116,7 +116,7 @@ export default function LoginPage() {
                 <span>Next.js App Router Architecture</span>
               </div>
               <span>•</span>
-              <span>PostgreSQL Live Connection</span>
+              <span>Live System Connection</span>
             </div>
           </div>
 

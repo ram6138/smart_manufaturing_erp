@@ -49,7 +49,7 @@ import { FinanceAlerts } from "@/components/finance/finance-alerts";
 import { FinanceFilters } from "@/components/finance/finance-filters";
 
 import {
-  DollarSign,
+  IndianRupee,
   TrendingUp,
   Receipt,
   Factory,
@@ -260,7 +260,7 @@ export default function FinancePage() {
           <div>
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <DollarSign className="w-6 h-6" />
+                <IndianRupee className="w-6 h-6" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-slate-100 tracking-tight">Finance Management</h1>

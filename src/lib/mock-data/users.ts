@@ -64,7 +64,7 @@ export const ALL_SYSTEM_ROLES: {
     role: "Finance Manager",
     description: "Production costing, margins, PO approvals, and fiscal reports",
     color: "teal",
-    iconName: "DollarSign",
+    iconName: "IndianRupee",
   },
 ];
 

@@ -202,7 +202,7 @@ export async function POST(req: Request) {
 
       return NextResponse.json({
         status: 'success',
-        message: 'Maintenance scheduled in PostgreSQL successfully!',
+        message: 'Maintenance scheduled successfully!',
         recordId: insertRes.rows[0].maintenance_record_id,
       });
     }
@@ -218,7 +218,7 @@ export async function POST(req: Request) {
 
       return NextResponse.json({
         status: 'success',
-        message: 'Machine added to PostgreSQL database successfully!',
+        message: 'Machine added successfully!',
         machine: newM.rows[0],
       });
     }

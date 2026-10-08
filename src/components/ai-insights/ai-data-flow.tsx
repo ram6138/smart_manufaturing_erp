@@ -25,7 +25,7 @@ export function AiDataFlow() {
     },
     {
       step: 2,
-      title: "PostgreSQL / Data",
+      title: "Operational Database",
       subtitle: "Transactional tables",
       icon: Database,
       color: "text-cyan-400",

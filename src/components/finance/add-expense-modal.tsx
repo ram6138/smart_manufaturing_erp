@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { ExpenseRecord, ExpenseCategory, FinanceDepartment, PaymentStatus } from "@/types/finance";
-import { X, PlusCircle, AlertCircle, DollarSign } from "lucide-react";
+import { X, PlusCircle, AlertCircle, IndianRupee } from "lucide-react";
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -244,7 +244,7 @@ export function AddExpenseModal({
               type="submit"
               className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg shadow-lg shadow-emerald-900/30 transition-colors flex items-center gap-1.5"
             >
-              <DollarSign className="w-4 h-4" />
+              <IndianRupee className="w-4 h-4" />
               Save Expense Entry
             </button>
           </div>

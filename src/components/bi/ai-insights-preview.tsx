@@ -8,7 +8,7 @@ import {
   ShieldCheck,
   TrendingUp,
   Package,
-  DollarSign,
+  IndianRupee,
   Users,
   Cpu,
   ArrowUpRight,
@@ -29,8 +29,8 @@ export function AiInsightsPreview({ cards }: AiInsightsPreviewProps) {
         return <TrendingUp className="w-4 h-4 text-purple-400" />;
       case "Package":
         return <Package className="w-4 h-4 text-blue-400" />;
-      case "DollarSign":
-        return <DollarSign className="w-4 h-4 text-amber-400" />;
+      case "IndianRupee":
+        return <IndianRupee className="w-4 h-4 text-amber-400" />;
       case "Users":
       default:
         return <Users className="w-4 h-4 text-emerald-400" />;

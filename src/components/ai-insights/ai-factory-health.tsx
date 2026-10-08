@@ -11,7 +11,7 @@ import {
   Wrench,
   ShieldCheck,
   Users,
-  DollarSign,
+  IndianRupee,
 } from "lucide-react";
 
 interface AiFactoryHealthProps {
@@ -63,7 +63,7 @@ export function AiFactoryHealth({ data }: AiFactoryHealthProps) {
     {
       label: "Finance",
       score: data.breakdown.finance,
-      icon: DollarSign,
+      icon: IndianRupee,
       color: "bg-purple-500",
       textColor: "text-purple-400",
       status: "Variance",

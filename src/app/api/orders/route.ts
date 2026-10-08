@@ -148,7 +148,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       status: 'success',
-      message: `Customer Order ${orderNumber} placed successfully in PostgreSQL!`,
+      message: `Customer Order ${orderNumber} placed successfully!`,
       order: {
         id: createdOrder.order_id,
         orderNumber: createdOrder.order_number,
@@ -172,10 +172,13 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
     }
 
-    // 1. Delete associated line items first (referential integrity)
+    // 1. Unlink any associated production orders
+    await query(`UPDATE production_orders SET order_id = NULL WHERE order_id = $1`, [orderId]);
+
+    // 2. Delete associated line items (referential integrity)
     await query(`DELETE FROM order_items WHERE order_id = $1`, [orderId]);
 
-    // 2. Delete the order header
+    // 3. Delete the order header
     const delRes = await query(`DELETE FROM customer_orders WHERE order_id = $1 RETURNING order_number`, [orderId]);
 
     if (delRes.rows.length === 0) {
@@ -184,7 +187,7 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({
       status: 'success',
-      message: `Order ${delRes.rows[0].order_number} has been deleted from PostgreSQL successfully!`,
+      message: `Order ${delRes.rows[0].order_number} has been deleted successfully!`,
       orderNumber: delRes.rows[0].order_number,
     });
   } catch (error: any) {
@@ -216,7 +219,7 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json({
       status: 'success',
-      message: `Order ${updateRes.rows[0].order_number} status updated to '${newStatus}' in PostgreSQL!`,
+      message: `Order ${updateRes.rows[0].order_number} status updated to '${newStatus}'!`,
       order: updateRes.rows[0],
     });
   } catch (error: any) {

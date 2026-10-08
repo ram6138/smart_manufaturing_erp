@@ -52,7 +52,7 @@ import {
   ShieldCheck,
   TrendingUp,
   Boxes,
-  DollarSign,
+  IndianRupee,
   Cpu,
 } from "lucide-react";
 
@@ -264,7 +264,7 @@ export default function AiInsightsPage() {
             <div className="flex items-center gap-2.5">
               <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-blue-600 text-white border border-blue-600 uppercase tracking-wider shrink-0">
                 <Sparkles className="w-3 h-3 text-white" />
-                POSTGRESQL AI TELEMETRY
+                ENTERPRISE AI TELEMETRY
               </span>
               <p className="text-xs text-slate-700 leading-tight">
                 AI operational insights and failure predictions generated from live database tables and sensory telemetry streams.

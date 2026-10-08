@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { TrendingUp, DollarSign, ArrowUpRight } from "lucide-react";
+import { TrendingUp, IndianRupee, ArrowUpRight } from "lucide-react";
 
 interface RevenueExpenseChartProps {
   data: MonthlyFinancialTrend[];

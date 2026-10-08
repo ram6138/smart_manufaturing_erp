@@ -470,7 +470,7 @@ export const INITIAL_AI_PREVIEWS: AiIntelligencePreviewCard[] = [
     description: "Machine learning models can identify abnormal utility spikes, tariff variances, and scrap cost outliers.",
     potentialValue: "Immediate notification of cost leaks > ₹25,000",
     forecastType: "Fiscal Unsupervised Clustering",
-    iconName: "DollarSign",
+    iconName: "IndianRupee",
   },
   {
     id: "ai_006",

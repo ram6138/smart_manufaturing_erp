@@ -69,7 +69,9 @@ export default function OrdersPage() {
 
   // New Order Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [customerMode, setCustomerMode] = useState<"select" | "manual">("select");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("1");
+  const [manualCustomerName, setManualCustomerName] = useState<string>("");
   const [selectedProductId, setSelectedProductId] = useState<string>("1"); // Biscuit - Coconut
   const [orderQuantity, setOrderQuantity] = useState<number>(1000); // 1000 packets
   const [unitPrice, setUnitPrice] = useState<number>(25.0);
@@ -129,17 +131,22 @@ export default function OrdersPage() {
 
     setIsSubmitting(true);
     try {
-      const payload = {
-        customerId: parseInt(selectedCustomerId),
+      const payload: any = {
         items: [
           {
             productId: parseInt(selectedProductId),
-            quantity: orderQuantity,
+            quantity: Math.max(1, orderQuantity),
             unitPrice: unitPrice,
           },
         ],
         expectedDays: 5,
       };
+
+      if (customerMode === "manual" && manualCustomerName.trim()) {
+        payload.customerName = manualCustomerName.trim();
+      } else {
+        payload.customerId = parseInt(selectedCustomerId) || 1;
+      }
 
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -151,8 +158,10 @@ export default function OrdersPage() {
 
       if (res.ok && data.status === "success") {
         setIsModalOpen(false);
+        setManualCustomerName("");
+        setCustomerMode("select");
         showNotification(
-          `Success! Order ${data.order.orderNumber} for ${orderQuantity.toLocaleString()} packets saved to PostgreSQL database!`
+          `Success! Order ${data.order.orderNumber} for ${orderQuantity.toLocaleString()} packets saved successfully!`
         );
         fetchOrders();
       } else {
@@ -181,7 +190,7 @@ export default function OrdersPage() {
       const data = await res.json();
 
       if (res.ok && data.status === "success") {
-        showNotification(`Order ${deletingOrder.orderNumber} deleted from PostgreSQL successfully.`);
+        showNotification(`Order ${deletingOrder.orderNumber} deleted successfully.`);
         setDeletingOrder(null);
         fetchOrders();
       } else {
@@ -210,7 +219,7 @@ export default function OrdersPage() {
       const data = await res.json();
 
       if (res.ok && data.status === "success") {
-        showNotification(`Order status updated to "${newStatus}" in PostgreSQL!`);
+        showNotification(`Order status updated to "${newStatus}"!`);
         fetchOrders();
       } else {
         throw new Error(data.error || "Failed to update status");
@@ -240,18 +249,6 @@ export default function OrdersPage() {
         {/* 1. Page Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-800/80">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-                <ClipboardList className="w-3.5 h-3.5" />
-                Sales & Customer Fulfillment
-              </span>
-              {isDbLive && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-                  <Database className="w-3 h-3 text-emerald-400" />
-                  PostgreSQL Verified
-                </span>
-              )}
-            </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               Customer Orders Intake & Management
             </h1>
@@ -277,7 +274,7 @@ export default function OrdersPage() {
             <div>
               <p className="text-xs font-medium text-slate-400">Total Customer Orders</p>
               <p className="text-2xl font-bold text-white mt-1">{orders.length}</p>
-              <span className="text-[11px] text-cyan-400 font-mono">customer_orders table</span>
+              <span className="text-[11px] text-cyan-400 font-medium">All Registered Orders</span>
             </div>
             <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
               <ClipboardList className="w-5 h-5" />
@@ -290,7 +287,7 @@ export default function OrdersPage() {
               <p className="text-2xl font-bold text-emerald-400 mt-1">
                 {totalOrderedUnits.toLocaleString()} <span className="text-xs text-slate-400 font-normal">Packets</span>
               </p>
-              <span className="text-[11px] text-emerald-400 font-mono">order_items table</span>
+              <span className="text-[11px] text-emerald-400 font-medium">Total Unit Demand</span>
             </div>
             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
               <ShoppingBag className="w-5 h-5" />
@@ -301,10 +298,10 @@ export default function OrdersPage() {
             <div>
               <p className="text-xs font-medium text-slate-400">Cumulative Order Value</p>
               <p className="text-2xl font-bold text-white mt-1">
-                ${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                ₹{totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </p>
-              <span className="text-[11px] text-purple-400 font-mono">
-                Real-time DB aggregate
+              <span className="text-[11px] text-purple-400 font-medium">
+                Total Sales Pipeline
               </span>
             </div>
             <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
@@ -322,7 +319,7 @@ export default function OrdersPage() {
                 Live Customer Orders Records
               </h2>
               <p className="text-xs text-slate-400">
-                Directly reading from <code className="text-cyan-400">customer_orders</code> and <code className="text-cyan-400">order_items</code>
+                Track and manage client purchase orders across all production lifecycles
               </p>
             </div>
           </div>
@@ -372,7 +369,7 @@ export default function OrdersPage() {
                       {ord.expectedDeliveryDate ? new Date(ord.expectedDeliveryDate).toLocaleDateString() : "TBD"}
                     </td>
                     <td className="py-3 px-4 font-mono font-bold text-emerald-400">
-                      ${ord.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      ₹{ord.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </td>
                     <td className="py-3 px-4">
                       {permissions.canUpdateStatus ? (
@@ -428,7 +425,6 @@ export default function OrdersPage() {
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-white">Register New Customer Order</h3>
-                    <p className="text-xs text-slate-400">Directly writes records to your PostgreSQL database</p>
                   </div>
                 </div>
                 <button
@@ -441,18 +437,52 @@ export default function OrdersPage() {
 
               <form onSubmit={handlePlaceOrder} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Select Customer</label>
-                  <select
-                    value={selectedCustomerId}
-                    onChange={(e) => setSelectedCustomerId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-cyan-500"
-                  >
-                    {customers.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} ({c.city || "Factory Client"})
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold text-slate-300">Customer</label>
+                    {customerMode === "manual" && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCustomerMode("select");
+                          setManualCustomerName("");
+                        }}
+                        className="text-[11px] text-cyan-400 hover:text-cyan-300"
+                      >
+                        ← Choose from list
+                      </button>
+                    )}
+                  </div>
+
+                  {customerMode === "select" ? (
+                    <select
+                      value={selectedCustomerId}
+                      onChange={(e) => {
+                        if (e.target.value === "new") {
+                          setCustomerMode("manual");
+                        } else {
+                          setSelectedCustomerId(e.target.value);
+                        }
+                      }}
+                      className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-cyan-500"
+                    >
+                      {customers.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} ({c.city || "Factory Client"})
+                        </option>
+                      ))}
+                      <option value="new">+ Enter New Customer Name...</option>
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      required
+                      placeholder="Type Customer / Company Name (e.g. Reliance Fresh, Local Mart)"
+                      value={manualCustomerName}
+                      onChange={(e) => setManualCustomerName(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-cyan-500 placeholder:text-slate-500"
+                      autoFocus
+                    />
+                  )}
                 </div>
 
                 <div>
@@ -464,10 +494,10 @@ export default function OrdersPage() {
                       if (e.target.value === "2") setUnitPrice(30.0);
                       else setUnitPrice(25.0);
                     }}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-cyan-500"
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-cyan-500"
                   >
-                    <option value="1">Biscuit - Coconut (FG-BIS-001) - $25.00/pack</option>
-                    <option value="2">Biscuit - Chocolate (FG-BIS-002) - $30.00/pack</option>
+                    <option value="1">Biscuit - Coconut (FG-BIS-001) - ₹25.00/pack</option>
+                    <option value="2">Biscuit - Chocolate (FG-BIS-002) - ₹30.00/pack</option>
                   </select>
                 </div>
 
@@ -477,34 +507,32 @@ export default function OrdersPage() {
                     <input
                       type="number"
                       min="1"
-                      step="100"
+                      step="1"
+                      required
                       value={orderQuantity}
                       onChange={(e) => setOrderQuantity(parseInt(e.target.value) || 0)}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white font-mono focus:outline-none focus:border-cyan-500"
+                      className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white font-mono focus:outline-none focus:border-cyan-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Unit Price ($ / pack)</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Unit Price (₹ / pack)</label>
                     <input
                       type="number"
-                      step="0.5"
+                      step="any"
+                      min="0.01"
+                      required
                       value={unitPrice}
                       onChange={(e) => setUnitPrice(parseFloat(e.target.value) || 0)}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white font-mono focus:outline-none focus:border-cyan-500"
+                      className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white font-mono focus:outline-none focus:border-cyan-500"
                     />
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
-                  <div>
-                    <p className="text-[11px] text-slate-400">Total Calculated Order Value:</p>
-                    <p className="text-lg font-bold font-mono text-emerald-400">
-                      ${(orderQuantity * unitPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[11px] text-cyan-400 font-mono">Authorized by {user?.role || "Admin"}</span>
-                  </div>
+                <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800">
+                  <p className="text-[11px] text-slate-400 mb-1">Total Calculated Order Value:</p>
+                  <p className="text-xl font-bold font-mono text-emerald-400">
+                    ₹{(orderQuantity * unitPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
                 </div>
 
                 <div className="flex items-center justify-end gap-3 pt-2">
@@ -518,9 +546,9 @@ export default function OrdersPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-xs font-bold text-white shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center gap-1.5"
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-xs font-bold text-white shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center gap-1.5"
                   >
-                    {isSubmitting ? "Writing to PostgreSQL..." : "Confirm & Save Order"}
+                    {isSubmitting ? "Saving..." : "Confirm & Save Order"}
                   </button>
                 </div>
               </form>
@@ -539,7 +567,7 @@ export default function OrdersPage() {
                 <div>
                   <h3 className="text-base font-bold text-white">Delete Order {deletingOrder.orderNumber}?</h3>
                   <p className="text-xs text-slate-400 mt-1">
-                    This will permanently delete this order and its {deletingOrder.items.length} line item(s) from the <code className="text-rose-300 font-mono">customer_orders</code> table in PostgreSQL.
+                    Are you sure you want to delete this order? This action cannot be undone.
                   </p>
                 </div>
               </div>
@@ -552,7 +580,7 @@ export default function OrdersPage() {
                 <div className="flex justify-between text-slate-300">
                   <span>Order Total:</span>
                   <span className="font-mono font-bold text-rose-400">
-                    ${deletingOrder.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    ₹{deletingOrder.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
@@ -572,7 +600,7 @@ export default function OrdersPage() {
                   disabled={isDeleting}
                   className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white shadow-lg shadow-rose-600/30 flex items-center gap-1.5 disabled:opacity-50"
                 >
-                  {isDeleting ? "Deleting from PostgreSQL..." : "Confirm & Delete Order"}
+                  {isDeleting ? "Deleting..." : "Confirm & Delete Order"}
                 </button>
               </div>
             </div>

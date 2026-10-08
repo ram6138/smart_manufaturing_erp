@@ -45,7 +45,7 @@ import {
   ShieldCheck,
   Package,
   ShoppingBag,
-  DollarSign,
+  IndianRupee,
   Layers,
   Search,
 } from "lucide-react";
@@ -267,7 +267,7 @@ export default function BusinessIntelligencePage() {
                 : "bg-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-750 border border-slate-700/50"
             }`}
           >
-            <DollarSign className="w-4 h-4" />
+            <IndianRupee className="w-4 h-4" />
             Finance & Cost Intelligence
           </button>
 
