@@ -28,16 +28,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Load session on initial mount
   useEffect(() => {
-    try {
-      const activeSession = getClientSession();
-      if (activeSession) {
-        setSession(activeSession);
-      }
-    } catch (e) {
-      console.error("Failed to load session:", e);
-    } finally {
-      setIsLoading(false);
+    const activeSession = getClientSession();
+    if (activeSession) {
+      setSession(activeSession);
     }
+    setIsLoading(false);
   }, []);
 
   const login = useCallback(
