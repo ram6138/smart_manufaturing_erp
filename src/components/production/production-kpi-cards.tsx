@@ -193,36 +193,25 @@ export function ProductionKpiCards({
             </div>
 
             {/* Bottom Row: Change Percentage & Complete Label Text */}
-            <div className="mt-3 pt-2.5 border-t border-slate-100 flex flex-col gap-1.5">
-              <div className="flex items-center justify-between gap-1 text-xs">
-                <span
-                  className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10.5px] font-bold font-mono shrink-0 ${
-                    card.isGood
-                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                      : "bg-rose-50 text-rose-700 border border-rose-200"
-                  }`}
-                >
-                  {card.isUp ? (
-                    <TrendingUp className="w-2.5 h-2.5" />
-                  ) : (
-                    <TrendingDown className="w-2.5 h-2.5" />
-                  )}
-                  <span>{card.change}</span>
-                </span>
+            <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-1 text-xs">
+              <span
+                className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10.5px] font-bold font-mono shrink-0 ${
+                  card.isGood
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    : "bg-rose-50 text-rose-700 border border-rose-200"
+                }`}
+              >
+                {card.isUp ? (
+                  <TrendingUp className="w-2.5 h-2.5" />
+                ) : (
+                  <TrendingDown className="w-2.5 h-2.5" />
+                )}
+                <span>{card.change}</span>
+              </span>
 
-                <span className="text-[10.5px] text-slate-500 font-medium leading-tight text-right">
-                  {card.label}
-                </span>
-              </div>
-
-              {/* Interactive Cue Hint */}
-              <div className="flex items-center justify-between text-[10px] font-bold text-blue-600 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200 pt-0.5">
-                <span className="inline-flex items-center gap-1">
-                  <Sparkles className="w-2.5 h-2.5 text-blue-500" />
-                  Related Topics
-                </span>
-                <ChevronRight className="w-3 h-3 text-blue-600" />
-              </div>
+              <span className="text-[10.5px] text-slate-500 font-medium leading-tight text-right">
+                {card.label}
+              </span>
             </div>
           </button>
         );
