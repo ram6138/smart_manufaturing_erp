@@ -241,9 +241,6 @@ export default function ProductionPage() {
                 <Factory className="w-3.5 h-3.5 text-blue-700" />
                 Shop Floor Operations
               </span>
-              <span className="text-xs text-slate-500 font-mono hidden sm:inline">
-                Line Balancing & Dispatch
-              </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
               Production Management
