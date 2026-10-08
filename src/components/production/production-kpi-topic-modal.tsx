@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ProductionKPIData, ProductionOrder } from "@/types/production";
 import {
   Factory,
@@ -55,6 +56,7 @@ export function ProductionKpiTopicModal({
   onApplyFilter,
   onShowNotification,
 }: ProductionKpiTopicModalProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<number>(0);
 
   if (!topicId) return null;
@@ -88,7 +90,15 @@ export function ProductionKpiTopicModal({
         filterValue: string;
         buttonText: string;
       };
-      quickLinks: { label: string; desc: string; icon: any }[];
+      quickLinks: {
+        label: string;
+        desc: string;
+        icon: any;
+        action?: "tab" | "route" | "scroll";
+        tabIndex?: number;
+        href?: string;
+        target?: string;
+      }[];
     }
   > = {
     planned: {
@@ -192,9 +202,9 @@ export function ProductionKpiTopicModal({
         buttonText: "Filter Active Scheduled & In-Progress Orders",
       },
       quickLinks: [
-        { label: "Bill of Materials (BOM)", desc: "Inspect ingredient consumption formulas", icon: Boxes },
-        { label: "Master Schedule (MPS)", desc: "View shift-by-shift Gantt timeline", icon: Calendar },
-        { label: "Capacity Planning", desc: "Equipment load vs rated limits", icon: Cpu },
+        { label: "Bill of Materials (BOM)", desc: "Inspect ingredient consumption formulas", icon: Boxes, action: "tab", tabIndex: 3 },
+        { label: "Master Schedule (MPS)", desc: "View shift-by-shift Gantt timeline", icon: Calendar, action: "tab", tabIndex: 0 },
+        { label: "Capacity Planning", desc: "Equipment load vs rated limits", icon: Cpu, action: "tab", tabIndex: 2 },
       ],
     },
     actual: {
@@ -297,9 +307,9 @@ export function ProductionKpiTopicModal({
         buttonText: "Filter In-Progress Orders in Table",
       },
       quickLinks: [
-        { label: "Production Orders Table", desc: "View and edit active shop floor batches", icon: ClipboardCheck },
-        { label: "Daily Output Chart", desc: "7-day volume telemetry graph", icon: BarChart3 },
-        { label: "Product Performance", desc: "Volume breakdown across 6 SKU lines", icon: Layers },
+        { label: "Production Orders Table", desc: "View and edit active shop floor batches", icon: ClipboardCheck, action: "scroll", target: '[aria-label="Production Orders List"]' },
+        { label: "Daily Output Chart", desc: "7-day volume telemetry graph", icon: BarChart3, action: "scroll", target: '[aria-label="Production Performance Trends"]' },
+        { label: "Product Performance", desc: "Volume breakdown across 6 SKU lines", icon: Layers, action: "scroll", target: '[aria-label="Product and Machine Performance"]' },
       ],
     },
     efficiency: {
@@ -403,9 +413,9 @@ export function ProductionKpiTopicModal({
         buttonText: "View Full Production Performance Data",
       },
       quickLinks: [
-        { label: "Machine Performance Matrix", desc: "Inspect equipment utilization & status", icon: Wrench },
-        { label: "Product Performance Table", desc: "SKU-level throughput & efficiency", icon: Layers },
-        { label: "7-Day Efficiency Trend", desc: "Historical OEE line chart", icon: Activity },
+        { label: "Machine Performance Matrix", desc: "Inspect equipment utilization & status", icon: Wrench, action: "scroll", target: '[aria-label="Product and Machine Performance"]' },
+        { label: "Product Performance Table", desc: "SKU-level throughput & efficiency", icon: Layers, action: "scroll", target: '[aria-label="Product and Machine Performance"]' },
+        { label: "7-Day Efficiency Trend", desc: "Historical OEE line chart", icon: Activity, action: "scroll", target: '[aria-label="Production Performance Trends"]' },
       ],
     },
     rejected: {
@@ -509,9 +519,9 @@ export function ProductionKpiTopicModal({
         buttonText: "Filter High Scrap & Urgent Orders",
       },
       quickLinks: [
-        { label: "Quality Assurance Module", desc: "View detailed QC inspection logs", icon: ShieldAlert },
-        { label: "Non-Conformance Records", desc: "Review open NCRs & supplier claims", icon: FileSpreadsheet },
-        { label: "Product Scrap Breakdown", desc: "Scrap quantity per product line", icon: Layers },
+        { label: "Quality Assurance Module", desc: "View detailed QC inspection logs", icon: ShieldAlert, action: "route", href: "/quality" },
+        { label: "Non-Conformance Records", desc: "Review open NCRs & supplier claims", icon: FileSpreadsheet, action: "tab", tabIndex: 1 },
+        { label: "Product Scrap Breakdown", desc: "Scrap quantity per product line", icon: Layers, action: "scroll", target: '[aria-label="Product and Machine Performance"]' },
       ],
     },
     downtime: {
@@ -615,9 +625,9 @@ export function ProductionKpiTopicModal({
         buttonText: "Filter Orders on Maintenance-Affected Machine",
       },
       quickLinks: [
-        { label: "Equipment Asset Registry", desc: "View all 5 plant machinery status logs", icon: Wrench },
-        { label: "Maintenance Work Orders", desc: "Create or track PM work tickets", icon: ClipboardCheck },
-        { label: "Machine Performance Table", desc: "Utilization & output per asset", icon: Cpu },
+        { label: "Equipment Asset Registry", desc: "View all 5 plant machinery status logs", icon: Wrench, action: "route", href: "/machines" },
+        { label: "Maintenance Work Orders", desc: "Create or track PM work tickets", icon: ClipboardCheck, action: "tab", tabIndex: 3 },
+        { label: "Machine Performance Table", desc: "Utilization & output per asset", icon: Cpu, action: "scroll", target: '[aria-label="Product and Machine Performance"]' },
       ],
     },
     completed: {
@@ -720,9 +730,9 @@ export function ProductionKpiTopicModal({
         buttonText: "Filter Completed Orders in Table",
       },
       quickLinks: [
-        { label: "Finished Goods Inventory", desc: "Inspect warehouse stock by SKU", icon: Boxes },
-        { label: "Batch Release Certificates", desc: "Download QA CoA compliance PDFs", icon: CheckCircle },
-        { label: "Order Cost Reconciliation", desc: "Review unit cost accounting ledgers", icon: FileSpreadsheet },
+        { label: "Finished Goods Inventory", desc: "Inspect warehouse stock by SKU", icon: Boxes, action: "route", href: "/inventory" },
+        { label: "Batch Release Certificates", desc: "Download QA CoA compliance PDFs", icon: CheckCircle, action: "tab", tabIndex: 1 },
+        { label: "Order Cost Reconciliation", desc: "Review unit cost accounting ledgers", icon: FileSpreadsheet, action: "tab", tabIndex: 3 },
       ],
     },
   };
@@ -941,16 +951,38 @@ export function ProductionKpiTopicModal({
                 return (
                   <div
                     key={idx}
-                    className="p-3.5 rounded-xl bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50/30 transition group flex items-start gap-3 cursor-pointer"
+                    className="p-3.5 rounded-xl bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50/30 transition group flex items-start gap-3 cursor-pointer shadow-xs active:scale-[0.98]"
                     onClick={() => {
-                      if (onShowNotification) {
-                        onShowNotification(
-                          `Navigating to ${link.label} context view.`
-                        );
+                      if (link.action === "tab" && typeof link.tabIndex === "number") {
+                        setActiveTab(link.tabIndex);
+                        if (onShowNotification) {
+                          onShowNotification(`Switched to "${link.label}" topic tab.`);
+                        }
+                      } else if (link.action === "route" && link.href) {
+                        onClose();
+                        if (onShowNotification) {
+                          onShowNotification(`Navigating to ${link.label}...`);
+                        }
+                        router.push(link.href);
+                      } else if (link.action === "scroll" && link.target) {
+                        onClose();
+                        if (onShowNotification) {
+                          onShowNotification(`Scrolled to ${link.label}`);
+                        }
+                        setTimeout(() => {
+                          const el = document.querySelector(link.target!);
+                          if (el) {
+                            el.scrollIntoView({ behavior: "smooth", block: "start" });
+                          }
+                        }, 150);
+                      } else {
+                        if (onShowNotification) {
+                          onShowNotification(`Viewing context for ${link.label}`);
+                        }
                       }
                     }}
                   >
-                    <div className="p-2 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition">
+                    <div className="p-2 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition shrink-0">
                       <LinkIcon className="w-4 h-4" />
                     </div>
                     <div className="space-y-0.5 min-w-0 flex-1">
