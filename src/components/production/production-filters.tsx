@@ -21,9 +21,14 @@ interface ProductionFiltersProps {
   onResetFilters: () => void;
   totalOrders: number;
   filteredCount: number;
+  availableProducts?: string[];
+  availableMachines?: string[];
+  availableShifts?: string[];
+  availableStatuses?: string[];
+  availablePriorities?: string[];
 }
 
-const PRODUCTS = [
+const DEFAULT_PRODUCTS = [
   "Classic Butter Biscuit",
   "Chocolate Biscuit",
   "Coconut Biscuit",
@@ -32,7 +37,7 @@ const PRODUCTS = [
   "Salted Biscuit",
 ];
 
-const MACHINES = [
+const DEFAULT_MACHINES = [
   "Baking Oven 1",
   "Baking Oven 2",
   "Mixer 1",
@@ -40,9 +45,9 @@ const MACHINES = [
   "Packaging Machine 2",
 ];
 
-const SHIFTS = ["Morning", "Evening", "Night"];
+const DEFAULT_SHIFTS = ["Morning", "Evening", "Night"];
 
-const STATUSES = [
+const DEFAULT_STATUSES = [
   "Scheduled",
   "Released",
   "In Progress",
@@ -51,7 +56,7 @@ const STATUSES = [
   "Cancelled",
 ];
 
-const PRIORITIES = ["Low", "Normal", "High", "Urgent"];
+const DEFAULT_PRIORITIES = ["Low", "Normal", "High", "Urgent"];
 
 export function ProductionFilters({
   filters,
@@ -59,7 +64,17 @@ export function ProductionFilters({
   onResetFilters,
   totalOrders,
   filteredCount,
+  availableProducts = [],
+  availableMachines = [],
+  availableShifts = [],
+  availableStatuses = [],
+  availablePriorities = [],
 }: ProductionFiltersProps) {
+  const products = availableProducts.length > 0 ? availableProducts : DEFAULT_PRODUCTS;
+  const machines = availableMachines.length > 0 ? availableMachines : DEFAULT_MACHINES;
+  const shifts = availableShifts.length > 0 ? availableShifts : DEFAULT_SHIFTS;
+  const statuses = availableStatuses.length > 0 ? availableStatuses : DEFAULT_STATUSES;
+  const priorities = availablePriorities.length > 0 ? availablePriorities : DEFAULT_PRIORITIES;
   const isFiltered =
     filters.searchQuery !== "" ||
     filters.product !== "all" ||
@@ -144,8 +159,8 @@ export function ProductionFilters({
             onChange={(e) => onFilterChange({ product: e.target.value })}
             className="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer"
           >
-            <option value="all">All Products (6)</option>
-            {PRODUCTS.map((prod) => (
+            <option value="all">All Products</option>
+            {products.map((prod) => (
               <option key={prod} value={prod}>
                 {prod}
               </option>
@@ -164,8 +179,8 @@ export function ProductionFilters({
             onChange={(e) => onFilterChange({ machine: e.target.value })}
             className="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer"
           >
-            <option value="all">All Machines (5)</option>
-            {MACHINES.map((mach) => (
+            <option value="all">All Machines</option>
+            {machines.map((mach) => (
               <option key={mach} value={mach}>
                 {mach}
               </option>
@@ -185,7 +200,7 @@ export function ProductionFilters({
             className="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer"
           >
             <option value="all">All Shifts</option>
-            {SHIFTS.map((s) => (
+            {shifts.map((s) => (
               <option key={s} value={s}>
                 {s} Shift
               </option>
@@ -205,7 +220,7 @@ export function ProductionFilters({
             className="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer"
           >
             <option value="all">All Statuses</option>
-            {STATUSES.map((st) => (
+            {statuses.map((st) => (
               <option key={st} value={st}>
                 {st}
               </option>
@@ -225,7 +240,7 @@ export function ProductionFilters({
             className="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer"
           >
             <option value="all">All Priorities</option>
-            {PRIORITIES.map((p) => (
+            {priorities.map((p) => (
               <option key={p} value={p}>
                 {p}
               </option>

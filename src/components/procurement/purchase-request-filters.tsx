@@ -14,21 +14,11 @@ interface PurchaseRequestFiltersProps {
   onResetFilters: () => void;
   totalRequests: number;
   filteredCount: number;
+  availableDepartments?: string[];
+  availableStatuses?: string[];
+  availablePriorities?: string[];
+  availableMaterials?: string[];
 }
-
-const DEPARTMENTS = ["Production", "Packaging", "Maintenance", "QA/QC", "Inventory"];
-const STATUSES: RequestStatus[] = ["Draft", "Pending", "Approved", "Rejected", "Converted to PO"];
-const PRIORITIES: RequestPriority[] = ["Low", "Normal", "High", "Urgent"];
-const MATERIALS = [
-  "Wheat Flour",
-  "Sugar",
-  "Cocoa Powder",
-  "Biscuit Wrapper",
-  "Biscuit Box",
-  "Machine Spare Parts",
-  "Lubricant",
-  "Cleaning Material",
-];
 
 export function PurchaseRequestFilters({
   filters,
@@ -36,7 +26,26 @@ export function PurchaseRequestFilters({
   onResetFilters,
   totalRequests,
   filteredCount,
+  availableDepartments = [],
+  availableStatuses = [],
+  availablePriorities = [],
+  availableMaterials = [],
 }: PurchaseRequestFiltersProps) {
+  const departments = availableDepartments.length > 0 
+    ? availableDepartments 
+    : ["Production & Operations", "Packaging", "Maintenance", "QA/QC", "Inventory"];
+
+  const statuses = availableStatuses.length > 0 
+    ? availableStatuses 
+    : ["Pending", "Approved", "Rejected", "Converted to PO"];
+
+  const priorities = availablePriorities.length > 0 
+    ? availablePriorities 
+    : ["Normal", "High", "Urgent", "Low"];
+
+  const materials = availableMaterials.length > 0 
+    ? availableMaterials 
+    : ["Wheat Flour", "Sugar", "Cocoa Powder", "Biscuit Wrapper", "Biscuit Box"];
   const isFiltered =
     filters.searchQuery !== "" ||
     filters.department !== "all" ||
@@ -69,7 +78,7 @@ export function PurchaseRequestFilters({
               className="w-full px-3 py-2.5 bg-slate-950/90 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-cyan-500 appearance-none cursor-pointer pr-8"
             >
               <option value="all">All Departments</option>
-              {DEPARTMENTS.map((dept) => (
+              {departments.map((dept) => (
                 <option key={dept} value={dept}>
                   {dept}
                 </option>
@@ -88,7 +97,7 @@ export function PurchaseRequestFilters({
               className="w-full px-3 py-2.5 bg-slate-950/90 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-cyan-500 appearance-none cursor-pointer pr-8"
             >
               <option value="all">All Statuses</option>
-              {STATUSES.map((st) => (
+              {statuses.map((st) => (
                 <option key={st} value={st}>
                   {st}
                 </option>
@@ -107,7 +116,7 @@ export function PurchaseRequestFilters({
               className="w-full px-3 py-2.5 bg-slate-950/90 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-cyan-500 appearance-none cursor-pointer pr-8"
             >
               <option value="all">All Priorities</option>
-              {PRIORITIES.map((p) => (
+              {priorities.map((p) => (
                 <option key={p} value={p}>
                   {p}
                 </option>
@@ -126,7 +135,7 @@ export function PurchaseRequestFilters({
               className="w-full px-3 py-2.5 bg-slate-950/90 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-cyan-500 appearance-none cursor-pointer pr-8"
             >
               <option value="all">All Materials</option>
-              {MATERIALS.map((mat) => (
+              {materials.map((mat) => (
                 <option key={mat} value={mat}>
                   {mat}
                 </option>

@@ -357,29 +357,133 @@ export async function POST(req: Request) {
           WHERE purchase_order_id = $2;
         `, [poStatus, cleanPoId]);
 
-        if (receivedQty > 0) {
+        // Get PO items to update stock
+        const poItems = await query(`
+          SELECT poi.product_id, COALESCE(poi.ordered_quantity, 0) as qty, poi.purchase_order_item_id
+          FROM purchase_order_items poi
+          WHERE poi.purchase_order_id = $1;
+        `, [cleanPoId]);
+
+        const incomingQty = receivedQty > 0 ? receivedQty : (poItems.rows[0]?.qty || 1000);
+
+        if (cleanPoId) {
           await query(`
             UPDATE purchase_order_items
-            SET received_quantity = received_quantity + $1, accepted_quantity = accepted_quantity + $1
+            SET received_quantity = COALESCE(received_quantity, 0) + $1, accepted_quantity = COALESCE(accepted_quantity, 0) + $1
             WHERE purchase_order_id = $2;
-          `, [receivedQty, cleanPoId]);
+          `, [incomingQty, cleanPoId]);
+        }
+
+        // Increment inventory_stock for each item in this PO
+        for (const item of poItems.rows) {
+          const prodId = item.product_id;
+          if (prodId) {
+            // Check if stock entry exists
+            const stockCheck = await query(
+              `SELECT inventory_stock_id, current_quantity, warehouse_id, unit_cost FROM inventory_stock WHERE product_id = $1 LIMIT 1`,
+              [prodId]
+            );
+
+            if (stockCheck.rows.length > 0) {
+              const stock = stockCheck.rows[0];
+              const prevQty = Number(stock.current_quantity) || 0;
+              const newQty = prevQty + incomingQty;
+              const unitCost = Number(stock.unit_cost) || 25.0;
+
+              await query(
+                `UPDATE inventory_stock 
+                 SET current_quantity = $1, inventory_value = $2, updated_at = NOW() 
+                 WHERE inventory_stock_id = $3`,
+                [newQty, newQty * unitCost, stock.inventory_stock_id]
+              );
+
+              // Record transaction
+              await query(
+                `INSERT INTO inventory_transactions 
+                 (transaction_date, product_id, warehouse_id, transaction_type, transaction_quantity, opening_stock, closing_stock, created_at)
+                 VALUES (NOW(), $1, $2, 'Purchase Receipt', $3, $4, $5, NOW())`,
+                [prodId, stock.warehouse_id || 1, incomingQty, prevQty, newQty]
+              );
+            } else {
+              // Create stock entry
+              await query(
+                `INSERT INTO inventory_stock (product_id, warehouse_id, current_quantity, unit_cost, inventory_value, reorder_level, reorder_quantity, stock_status, updated_at)
+                 VALUES ($1, 1, $2, 25.0, $2 * 25.0, 500, 1000, 'In Stock', NOW())`,
+                [prodId, incomingQty]
+              );
+            }
+          }
         }
       }
 
-      return NextResponse.json({ status: 'success', message: 'PO received updated in database' });
+      return NextResponse.json({ status: 'success', message: 'PO received and stock inventory updated in database successfully' });
     }
 
-    if (action === 'updatePOStatus') {
-      const { poId, status } = body;
-      const cleanPoId = parseInt(poId, 10);
-      if (!isNaN(cleanPoId)) {
+    if (action === 'updatePRStatus') {
+      const { prId, requestId, status } = body;
+      const idNum = parseInt(prId, 10);
+      if (!isNaN(idNum)) {
         await query(`
-          UPDATE purchase_orders
-          SET order_status = $1
-          WHERE purchase_order_id = $2;
-        `, [status, cleanPoId]);
+          UPDATE purchase_requests
+          SET request_status = $1
+          WHERE purchase_request_id = $2;
+        `, [status, idNum]);
+      } else if (requestId || prId) {
+        await query(`
+          UPDATE purchase_requests
+          SET request_status = $1
+          WHERE request_number = $2;
+        `, [status, requestId || prId]);
       }
-      return NextResponse.json({ status: 'success', message: `PO status updated to ${status}` });
+      return NextResponse.json({ status: 'success', message: `PR status updated to ${status}` });
+    }
+
+    if (action === 'createPR') {
+      const {
+        material,
+        quantity = 1000,
+        department = 'Production',
+        priority = 'Normal',
+        requiredDate,
+        reason = '',
+        estimatedUnitCost = 25,
+      } = body;
+
+      const countRes = await query(`SELECT COALESCE(MAX(purchase_request_id), 0) + 1 as next_id FROM purchase_requests;`);
+      const nextId = parseInt(countRes.rows[0].next_id, 10);
+      const prNum = `PR-2026-${String(100 + nextId).padStart(3, '0')}`;
+
+      // Find product_id
+      const pRes = await query(
+        `SELECT product_id FROM products WHERE product_name ILIKE $1 LIMIT 1;`,
+        [`%${material}%`]
+      );
+      const prodId = pRes.rows.length > 0 ? pRes.rows[0].product_id : 1;
+
+      // Insert PR
+      const insertPR = await query(`
+        INSERT INTO purchase_requests 
+          (request_number, requesting_department_id, requester_id, request_date, required_by_date, request_status, created_at)
+        VALUES 
+          ($1, 1, 1, CURRENT_DATE, COALESCE($2::date, CURRENT_DATE + INTERVAL '7 days'), 'Draft', NOW())
+        RETURNING purchase_request_id, request_number;
+      `, [prNum, requiredDate || null]);
+
+      const createdPrId = insertPR.rows[0].purchase_request_id;
+
+      // Insert PR item
+      await query(`
+        INSERT INTO purchase_request_items
+          (purchase_request_id, product_id, requested_quantity, estimated_unit_price, created_at)
+        VALUES
+          ($1, $2, $3, $4, NOW());
+      `, [createdPrId, prodId, Number(quantity) || 1000, Number(estimatedUnitCost) || 25]);
+
+      return NextResponse.json({
+        status: 'success',
+        message: `Purchase Request ${prNum} created!`,
+        pr: insertPR.rows[0],
+      });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

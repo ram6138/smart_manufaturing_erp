@@ -74,8 +74,6 @@ export function ProductionOrdersTable({
               <th className="pb-3 font-semibold">Machine & Shift</th>
               <th className="pb-3 font-semibold text-right">Planned</th>
               <th className="pb-3 font-semibold text-right">Actual</th>
-              <th className="pb-3 font-semibold text-center">Efficiency</th>
-              <th className="pb-3 font-semibold text-center">Rejection</th>
               <th className="pb-3 font-semibold text-center">Status</th>
               <th className="pb-3 font-semibold text-center">Priority</th>
               <th className="pb-3 font-semibold text-right">Actions</th>
@@ -130,53 +128,6 @@ export function ProductionOrdersTable({
                   {/* Actual Quantity */}
                   <td className="py-3.5 px-3 text-right font-mono font-bold text-white whitespace-nowrap">
                     {order.actualQuantity.toLocaleString()} {order.unit}
-                  </td>
-
-                  {/* Efficiency % */}
-                  <td className="py-3.5 px-3 text-center whitespace-nowrap">
-                    <div className="inline-flex flex-col items-center">
-                      <span
-                        className={`font-mono font-bold ${
-                          order.efficiency >= 95
-                            ? "text-emerald-400"
-                            : order.efficiency > 0
-                            ? "text-amber-400"
-                            : "text-slate-500"
-                        }`}
-                      >
-                        {order.efficiency}%
-                      </span>
-                      <div className="w-12 h-1 bg-slate-800 rounded-full overflow-hidden mt-0.5">
-                        <div
-                          className={`h-full rounded-full ${
-                            order.efficiency >= 95
-                              ? "bg-emerald-400"
-                              : order.efficiency > 0
-                              ? "bg-amber-400"
-                              : "bg-slate-700"
-                          }`}
-                          style={{ width: `${Math.min(order.efficiency, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Rejection Rate % */}
-                  <td className="py-3.5 px-3 text-center whitespace-nowrap">
-                    <span
-                      className={`font-mono text-xs font-semibold ${
-                        order.rejectionRate > 3.0
-                          ? "text-rose-400 font-bold"
-                          : order.rejectionRate > 0
-                          ? "text-amber-400"
-                          : "text-slate-500"
-                      }`}
-                    >
-                      {order.rejectionRate}%
-                    </span>
-                    <div className="text-[9px] text-slate-500 font-mono">
-                      {order.rejectedQuantity} scrap
-                    </div>
                   </td>
 
                   {/* Status Badge */}
@@ -286,22 +237,18 @@ export function ProductionOrdersTable({
               <div className="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800/80">
                 <div>
                   <span className="text-[10px] uppercase text-slate-500 block">
-                    Planned / Produced
+                    Planned Target
                   </span>
                   <span className="font-mono font-bold text-slate-200">
-                    {order.actualQuantity.toLocaleString()} / {order.plannedQuantity.toLocaleString()}
+                    {order.plannedQuantity.toLocaleString()} {order.unit}
                   </span>
                 </div>
                 <div className="text-right">
                   <span className="text-[10px] uppercase text-slate-500 block">
-                    Yield Efficiency
+                    Actual Output
                   </span>
-                  <span
-                    className={`font-mono font-bold ${
-                      order.efficiency >= 95 ? "text-emerald-400" : "text-amber-400"
-                    }`}
-                  >
-                    {order.efficiency}%
+                  <span className="font-mono font-bold text-emerald-400">
+                    {order.actualQuantity.toLocaleString()} {order.unit}
                   </span>
                 </div>
               </div>

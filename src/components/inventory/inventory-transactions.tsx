@@ -17,46 +17,54 @@ interface InventoryTransactionsProps {
 }
 
 export function InventoryTransactions({ transactions }: InventoryTransactionsProps) {
-  const getTransactionBadge = (type: InventoryTransactionType) => {
-    switch (type) {
-      case "Receipt":
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-800/80">
-            <ArrowDownLeft className="w-3 h-3" />
-            Receipt
-          </span>
-        );
-      case "Production Consumption":
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-950/80 text-rose-400 border border-rose-800/80">
-            <ArrowUpRight className="w-3 h-3" />
-            Consumption
-          </span>
-        );
-      case "Adjustment":
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-950/80 text-amber-400 border border-amber-800/80">
-            <Sliders className="w-3 h-3" />
-            Adjustment
-          </span>
-        );
-      case "Transfer":
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-950/80 text-blue-400 border border-blue-800/80">
-            <ArrowLeftRight className="w-3 h-3" />
-            Transfer
-          </span>
-        );
-      case "Return":
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-950/80 text-purple-400 border border-purple-800/80">
-            <RotateCcw className="w-3 h-3" />
-            Return
-          </span>
-        );
-      default:
-        return null;
+  const getTransactionBadge = (type: InventoryTransactionType | string) => {
+    const norm = (type || "").toLowerCase();
+    if (norm.includes("receipt") || norm.includes("inbound")) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-800/80">
+          <ArrowDownLeft className="w-3 h-3" />
+          Receipt
+        </span>
+      );
     }
+    if (norm.includes("consumption") || norm.includes("issue") || norm.includes("batch")) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-950/80 text-rose-400 border border-rose-800/80">
+          <ArrowUpRight className="w-3 h-3" />
+          Consumption
+        </span>
+      );
+    }
+    if (norm.includes("adjustment")) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-950/80 text-amber-400 border border-amber-800/80">
+          <Sliders className="w-3 h-3" />
+          Adjustment
+        </span>
+      );
+    }
+    if (norm.includes("transfer")) {
+      const isOut = norm.includes("out");
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-950/80 text-blue-400 border border-blue-800/80">
+          <ArrowLeftRight className="w-3 h-3" />
+          {isOut ? "Transfer Out" : norm.includes("in") ? "Transfer In" : "Transfer"}
+        </span>
+      );
+    }
+    if (norm.includes("return")) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-950/80 text-purple-400 border border-purple-800/80">
+          <RotateCcw className="w-3 h-3" />
+          Return
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+        {type}
+      </span>
+    );
   };
 
   return (

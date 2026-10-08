@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { ErpLayout } from "@/components/layout/erp-layout";
 import { MachineItem, MachineFilterState, MaintenanceRecord, MaintenanceAlert } from "@/types/machines";
 import { INITIAL_MACHINES, INITIAL_MAINTENANCE_ALERTS } from "@/lib/mock-data/machines";
-import { MachineKpiCards } from "@/components/machines/machine-kpi-cards";
+import { MachineKpiCards, normalizeMachineStatus } from "@/components/machines/machine-kpi-cards";
 import { MachineFilters } from "@/components/machines/machine-filters";
 import { MachineHealthTable } from "@/components/machines/machine-health-table";
 import { SensorCharts } from "@/components/machines/sensor-charts";
@@ -103,7 +103,7 @@ export default function MachinesPage() {
     };
   }, []);
 
-  // Handle KPI card clicks for quick filter toggling
+  // Handle KPI card clicks for quick filter toggling and smooth navigation
   const handleKpiCardClick = (cardId: string) => {
     setActiveKpiCard(cardId);
     if (cardId === "total") {
@@ -119,32 +119,74 @@ export default function MachinesPage() {
     } else if (cardId === "high_risk") {
       setFilters((prev) => ({ ...prev, status: "all", riskLevel: "High" }));
     }
+
+    // Smoothly scroll down to the filtered machines table
+    setTimeout(() => {
+      const el = document.getElementById("machines-table-section");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 50);
   };
+
+  // Dynamic Filter Options derived from live machines
+  const availableMachineTypes = useMemo(() => {
+    const set = new Set<string>();
+    machines.forEach((m) => {
+      if (m.machineType && m.machineType.trim()) set.add(m.machineType.trim());
+    });
+    return Array.from(set);
+  }, [machines]);
+
+  const availableStatuses = useMemo(() => {
+    const set = new Set<string>();
+    machines.forEach((m) => {
+      if (m.status) set.add(normalizeMachineStatus(m.status));
+    });
+    return Array.from(set);
+  }, [machines]);
+
+  const availableRiskLevels = useMemo(() => {
+    const set = new Set<string>();
+    machines.forEach((m) => {
+      if (m.riskLevel && m.riskLevel.trim()) set.add(m.riskLevel.trim());
+    });
+    return Array.from(set);
+  }, [machines]);
 
   // Filter logic
   const filteredMachines = useMemo(() => {
     return machines.filter((machine) => {
       if (filters.searchQuery) {
-        const query = filters.searchQuery.toLowerCase();
-        const matchesCode = machine.machineCode.toLowerCase().includes(query);
-        const matchesName = machine.machineName.toLowerCase().includes(query);
-        const matchesType = machine.machineType.toLowerCase().includes(query);
-        const matchesLocation = machine.location.toLowerCase().includes(query);
+        const query = filters.searchQuery.toLowerCase().trim();
+        const matchesCode = (machine.machineCode || "").toLowerCase().includes(query);
+        const matchesName = (machine.machineName || "").toLowerCase().includes(query);
+        const matchesType = (machine.machineType || "").toLowerCase().includes(query);
+        const matchesLocation = (machine.location || "").toLowerCase().includes(query);
         if (!matchesCode && !matchesName && !matchesType && !matchesLocation) {
           return false;
         }
       }
 
-      if (filters.machineType !== "all" && machine.machineType !== filters.machineType) {
-        return false;
+      if (filters.machineType !== "all") {
+        const target = filters.machineType.toLowerCase().trim();
+        const cur = (machine.machineType || "").toLowerCase().trim();
+        if (cur !== target && !cur.includes(target) && !target.includes(cur)) return false;
       }
 
-      if (filters.status !== "all" && machine.status !== filters.status) {
-        return false;
+      if (filters.status !== "all") {
+        const target = filters.status.toLowerCase().trim();
+        const cur = normalizeMachineStatus(machine.status).toLowerCase().trim();
+        if (cur !== target) return false;
       }
 
-      if (filters.riskLevel !== "all" && machine.riskLevel !== filters.riskLevel) {
-        return false;
+      if (filters.riskLevel !== "all") {
+        const target = filters.riskLevel.toLowerCase().trim();
+        const cur = (machine.riskLevel || "").toLowerCase().trim();
+        if (target === "high" && (cur === "high" || cur === "critical")) {
+          return true;
+        }
+        if (cur !== target) return false;
       }
 
       return true;
@@ -283,14 +325,19 @@ export default function MachinesPage() {
           }}
           totalMachines={machines.length}
           filteredCount={filteredMachines.length}
+          availableMachineTypes={availableMachineTypes}
+          availableStatuses={availableStatuses}
+          availableRiskLevels={availableRiskLevels}
         />
 
         {/* 4. MACHINE STATUS OVERVIEW & HEALTH TABLE */}
-        <MachineHealthTable
-          machines={filteredMachines}
-          onViewMachine={handleOpenDetails}
-          onScheduleMaintenance={(m) => handleOpenScheduleModal(m.id)}
-        />
+        <div id="machines-table-section" className="scroll-mt-20">
+          <MachineHealthTable
+            machines={filteredMachines}
+            onViewMachine={handleOpenDetails}
+            onScheduleMaintenance={(m) => handleOpenScheduleModal(m.id)}
+          />
+        </div>
 
         {/* 5. PREDICTIVE MAINTENANCE (AI / ML PROTOTYPE LAYER) */}
         <PredictiveMaintenanceCard

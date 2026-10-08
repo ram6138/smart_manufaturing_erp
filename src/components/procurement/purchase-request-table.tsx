@@ -24,6 +24,7 @@ interface PurchaseRequestTableProps {
   onReject: (request: PurchaseRequest) => void;
   onConvertToPo: (request: PurchaseRequest) => void;
   onViewDetails: (request: PurchaseRequest) => void;
+  onSubmitPending?: (request: PurchaseRequest) => void;
 }
 
 export function RequestStatusBadge({ status }: { status: RequestStatus }) {
@@ -103,6 +104,7 @@ export function PurchaseRequestTable({
   onReject,
   onConvertToPo,
   onViewDetails,
+  onSubmitPending,
 }: PurchaseRequestTableProps) {
   const formatDate = (dateStr: string) => {
     try {
@@ -200,12 +202,33 @@ export function PurchaseRequestTable({
                 </td>
                 <td className="py-3.5 px-4 text-right whitespace-nowrap">
                   <div className="flex items-center justify-end gap-1.5">
+                    {r.status === "Draft" && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => onSubmitPending ? onSubmitPending(r) : onApprove(r)}
+                          className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 border border-cyan-500/30 transition-colors"
+                          title="Submit Draft to Pending Approval"
+                        >
+                          Submit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onReject(r)}
+                          className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 transition-colors"
+                          title="Reject / Cancel Requisition"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
                     {r.status === "Pending" && (
                       <>
                         <button
                           type="button"
                           onClick={() => onApprove(r)}
                           className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 transition-colors"
+                          title="Approve Requisition"
                         >
                           Approve
                         </button>
@@ -213,6 +236,7 @@ export function PurchaseRequestTable({
                           type="button"
                           onClick={() => onReject(r)}
                           className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 transition-colors"
+                          title="Reject Requisition"
                         >
                           Reject
                         </button>
@@ -223,16 +247,27 @@ export function PurchaseRequestTable({
                         type="button"
                         onClick={() => onConvertToPo(r)}
                         className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 border border-cyan-500/30 transition-colors flex items-center gap-1"
+                        title="Convert Approved PR into Official PO"
                       >
                         <PlusCircle className="w-3 h-3" />
                         <span>Create PO</span>
                       </button>
                     )}
+                    {r.status === "Rejected" && (
+                      <button
+                        type="button"
+                        onClick={() => onSubmitPending ? onSubmitPending(r) : onApprove(r)}
+                        className="px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors"
+                        title="Re-open Requisition to Pending"
+                      >
+                        Re-open
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => onViewDetails(r)}
-                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors"
-                      title="View Requisition Details"
+                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors cursor-pointer"
+                      title="View Full Requisition Details"
                     >
                       <Eye className="w-3.5 h-3.5" />
                     </button>
@@ -287,6 +322,24 @@ export function PurchaseRequestTable({
                 Required: {formatDate(r.requiredDate)}
               </span>
               <div className="flex items-center gap-1.5">
+                {r.status === "Draft" && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => onSubmitPending ? onSubmitPending(r) : onApprove(r)}
+                      className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-cyan-500/15 text-cyan-400 border border-cyan-500/30"
+                    >
+                      Submit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onReject(r)}
+                      className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30"
+                    >
+                      Reject
+                    </button>
+                  </>
+                )}
                 {r.status === "Pending" && (
                   <>
                     <button
@@ -317,7 +370,8 @@ export function PurchaseRequestTable({
                 <button
                   type="button"
                   onClick={() => onViewDetails(r)}
-                  className="p-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700"
+                  className="p-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 cursor-pointer"
+                  title="View Details"
                 >
                   <Eye className="w-3.5 h-3.5" />
                 </button>

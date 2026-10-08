@@ -12,39 +12,38 @@ import {
   Activity,
 } from "lucide-react";
 
-export function MachineStatusBadge({ status }: { status: MachineStatus }) {
-  switch (status) {
-    case "Running":
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-800/80">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          Running
-        </span>
-      );
-    case "Warning":
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-950/80 text-amber-400 border border-amber-800/80">
-          <AlertTriangle className="w-3.5 h-3.5" />
-          Warning
-        </span>
-      );
-    case "Maintenance":
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-950/80 text-rose-400 border border-rose-800/80 animate-pulse">
-          <Wrench className="w-3.5 h-3.5" />
-          Maintenance
-        </span>
-      );
-    case "Idle":
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
-          <Clock className="w-3.5 h-3.5" />
-          Idle
-        </span>
-      );
-    default:
-      return null;
+export function MachineStatusBadge({ status }: { status: MachineStatus | string }) {
+  const norm = (status || "").toLowerCase().trim();
+  if (norm === "warning" || norm === "alert" || norm === "degraded") {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-950/80 text-amber-400 border border-amber-800/80">
+        <AlertTriangle className="w-3.5 h-3.5" />
+        Warning
+      </span>
+    );
   }
+  if (norm === "maintenance" || norm === "under maintenance" || norm === "repair" || norm === "offline") {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-950/80 text-rose-400 border border-rose-800/80 animate-pulse">
+        <Wrench className="w-3.5 h-3.5" />
+        Maintenance
+      </span>
+    );
+  }
+  if (norm === "idle" || norm === "standby" || norm === "ready") {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+        <Clock className="w-3.5 h-3.5" />
+        Idle
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-800/80">
+      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+      Running
+    </span>
+  );
 }
 
 export function RiskIndicator({

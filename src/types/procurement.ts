@@ -56,9 +56,11 @@ export interface PurchaseRequest {
   status: RequestStatus;
   supplierPreference?: string;
   notes?: string;
+  reason?: string;
+  requestedDate?: string;
   rejectionReason?: string;
-  createdAt: string;
   convertedPoId?: string;
+  createdAt: string;
 }
 
 // Supplier Item

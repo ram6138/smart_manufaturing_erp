@@ -91,43 +91,94 @@ export default function ProductionPage() {
   const [editingOrder, setEditingOrder] = useState<ProductionOrder | null>(null);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
 
+  // Dynamic Filter Options from actual orders
+  const availableProducts = useMemo(() => {
+    const set = new Set<string>();
+    orders.forEach((o) => {
+      if (o.product && o.product.trim()) set.add(o.product.trim());
+    });
+    return Array.from(set);
+  }, [orders]);
+
+  const availableMachines = useMemo(() => {
+    const set = new Set<string>();
+    orders.forEach((o) => {
+      if (o.machine && o.machine.trim()) set.add(o.machine.trim());
+    });
+    return Array.from(set);
+  }, [orders]);
+
+  const availableShifts = useMemo(() => {
+    const set = new Set<string>();
+    orders.forEach((o) => {
+      if (o.shift && o.shift.trim()) set.add(o.shift.trim());
+    });
+    return Array.from(set);
+  }, [orders]);
+
+  const availableStatuses = useMemo(() => {
+    const set = new Set<string>();
+    orders.forEach((o) => {
+      if (o.status && o.status.trim()) set.add(o.status.trim());
+    });
+    return Array.from(set);
+  }, [orders]);
+
+  const availablePriorities = useMemo(() => {
+    const set = new Set<string>();
+    orders.forEach((o) => {
+      if (o.priority && o.priority.trim()) set.add(o.priority.trim());
+    });
+    return Array.from(set);
+  }, [orders]);
+
   // Filter Logic
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
       // 1. Search Query
       if (filters.searchQuery.trim() !== "") {
-        const query = filters.searchQuery.toLowerCase();
-        const matchesOrder = order.orderNumber.toLowerCase().includes(query);
-        const matchesBatch = order.batchNumber.toLowerCase().includes(query);
-        const matchesProduct = order.product.toLowerCase().includes(query);
+        const query = filters.searchQuery.toLowerCase().trim();
+        const matchesOrder = (order.orderNumber || "").toLowerCase().includes(query);
+        const matchesBatch = (order.batchNumber || "").toLowerCase().includes(query);
+        const matchesProduct = (order.product || "").toLowerCase().includes(query);
         if (!matchesOrder && !matchesBatch && !matchesProduct) {
           return false;
         }
       }
 
       // 2. Product Filter
-      if (filters.product !== "all" && order.product !== filters.product) {
-        return false;
+      if (filters.product !== "all") {
+        const target = filters.product.toLowerCase().trim();
+        const cur = (order.product || "").toLowerCase().trim();
+        if (cur !== target && !cur.includes(target) && !target.includes(cur)) return false;
       }
 
       // 3. Machine Filter
-      if (filters.machine !== "all" && order.machine !== filters.machine) {
-        return false;
+      if (filters.machine !== "all") {
+        const target = filters.machine.toLowerCase().trim();
+        const cur = (order.machine || "").toLowerCase().trim();
+        if (cur !== target && !cur.includes(target) && !target.includes(cur)) return false;
       }
 
       // 4. Shift Filter
-      if (filters.shift !== "all" && order.shift !== filters.shift) {
-        return false;
+      if (filters.shift !== "all") {
+        const target = filters.shift.toLowerCase().trim();
+        const cur = (order.shift || "").toLowerCase().trim();
+        if (cur !== target && !cur.includes(target) && !target.includes(cur)) return false;
       }
 
       // 5. Status Filter
-      if (filters.status !== "all" && order.status !== filters.status) {
-        return false;
+      if (filters.status !== "all") {
+        const target = filters.status.toLowerCase().trim();
+        const cur = (order.status || "").toLowerCase().trim();
+        if (cur !== target) return false;
       }
 
       // 6. Priority Filter
-      if (filters.priority !== "all" && order.priority !== filters.priority) {
-        return false;
+      if (filters.priority !== "all") {
+        const target = filters.priority.toLowerCase().trim();
+        const cur = (order.priority || "").toLowerCase().trim();
+        if (cur !== target) return false;
       }
 
       return true;
@@ -304,6 +355,11 @@ export default function ProductionPage() {
             onResetFilters={handleResetFilters}
             totalOrders={orders.length}
             filteredCount={filteredOrders.length}
+            availableProducts={availableProducts}
+            availableMachines={availableMachines}
+            availableShifts={availableShifts}
+            availableStatuses={availableStatuses}
+            availablePriorities={availablePriorities}
           />
         </section>
 

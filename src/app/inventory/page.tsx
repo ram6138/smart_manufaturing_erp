@@ -135,26 +135,63 @@ export default function InventoryPage() {
   const [purchasingItem, setPurchasingItem] = useState<ComputedInventoryItem | null>(null);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
 
+  // Available categories, warehouses & statuses dynamically from real data
+  const availableCategories = useMemo(() => {
+    const set = new Set<string>();
+    computedItems.forEach((i) => {
+      if (i.category && i.category.trim()) set.add(i.category.trim());
+    });
+    return Array.from(set);
+  }, [computedItems]);
+
+  const availableWarehouses = useMemo(() => {
+    const set = new Set<string>();
+    computedItems.forEach((i) => {
+      if (i.warehouse && i.warehouse.trim()) set.add(i.warehouse.trim());
+    });
+    return Array.from(set);
+  }, [computedItems]);
+
+  const availableStatuses = useMemo(() => {
+    const set = new Set<string>();
+    computedItems.forEach((i) => {
+      if (i.status && i.status.trim()) set.add(i.status.trim());
+    });
+    return Array.from(set);
+  }, [computedItems]);
+
   // Filter Logic
   const filteredItems = useMemo(() => {
     return computedItems.filter((item) => {
       if (filters.searchQuery.trim() !== "") {
-        const query = filters.searchQuery.toLowerCase();
-        const matchesCode = item.itemCode.toLowerCase().includes(query);
-        const matchesName = item.itemName.toLowerCase().includes(query);
+        const query = filters.searchQuery.toLowerCase().trim();
+        const matchesCode = (item.itemCode || "").toLowerCase().includes(query);
+        const matchesName = (item.itemName || "").toLowerCase().includes(query);
         if (!matchesCode && !matchesName) return false;
       }
 
-      if (filters.category !== "all" && item.category !== filters.category) {
-        return false;
+      if (filters.category !== "all") {
+        const target = filters.category.toLowerCase().trim();
+        const itemCat = (item.category || "").toLowerCase().trim();
+        if (itemCat !== target && !itemCat.includes(target) && !target.includes(itemCat)) {
+          return false;
+        }
       }
 
-      if (filters.warehouse !== "all" && item.warehouse !== filters.warehouse) {
-        return false;
+      if (filters.warehouse !== "all") {
+        const target = filters.warehouse.toLowerCase().trim();
+        const itemWh = (item.warehouse || "").toLowerCase().trim();
+        if (itemWh !== target && !itemWh.includes(target) && !target.includes(itemWh)) {
+          return false;
+        }
       }
 
-      if (filters.status !== "all" && item.status !== filters.status) {
-        return false;
+      if (filters.status !== "all") {
+        const target = filters.status.toLowerCase().trim();
+        const curStatus = (item.status || "").toLowerCase().trim();
+        if (curStatus !== target) {
+          return false;
+        }
       }
 
       return true;
@@ -357,6 +394,9 @@ export default function InventoryPage() {
             onResetFilters={handleResetFilters}
             totalItems={computedItems.length}
             filteredCount={filteredItems.length}
+            availableCategories={availableCategories}
+            availableWarehouses={availableWarehouses}
+            availableStatuses={availableStatuses}
           />
         </section>
 
@@ -419,6 +459,7 @@ export default function InventoryPage() {
         {/* Stock Transfer Modal */}
         <StockTransferModal
           item={transferringItem}
+          availableWarehouses={availableWarehouses}
           onClose={() => setTransferringItem(null)}
           onSaveTransfer={handleSaveTransfer}
         />
@@ -426,6 +467,7 @@ export default function InventoryPage() {
         {/* Purchase Request Modal (Procurement Connector) */}
         <PurchaseRequestModal
           item={purchasingItem}
+          allItems={computedItems}
           onClose={() => setPurchasingItem(null)}
           onSubmitRequest={handleSubmitPurchaseRequest}
         />

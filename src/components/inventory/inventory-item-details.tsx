@@ -60,8 +60,14 @@ export function InventoryItemDetails({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in overflow-y-auto">
-      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-6 sm:p-7 text-slate-100 space-y-6">
+    <div 
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in overflow-y-auto"
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-6 sm:p-7 text-slate-100 space-y-6"
+      >
         {/* Modal Header */}
         <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
           <div className="space-y-1">
@@ -81,8 +87,9 @@ export function InventoryItemDetails({
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
             aria-label="Close dialog"
           >
             <X className="w-5 h-5" />
@@ -90,28 +97,10 @@ export function InventoryItemDetails({
         </div>
 
         {/* 1. Inventory Stock Numbers Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
           <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
             <span className="text-[10px] uppercase font-semibold text-slate-400 block mb-1">
-              Quantity On Hand
-            </span>
-            <span className="text-base font-bold font-mono text-slate-200">
-              {item.quantityOnHand.toLocaleString()} {item.unit}
-            </span>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-            <span className="text-[10px] uppercase font-semibold text-slate-400 block mb-1">
-              Reserved for Orders
-            </span>
-            <span className="text-base font-bold font-mono text-amber-400">
-              {item.reservedQuantity.toLocaleString()} {item.unit}
-            </span>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-            <span className="text-[10px] uppercase font-semibold text-slate-400 block mb-1">
-              Available Quantity
+              Available Stock
             </span>
             <span className="text-base font-bold font-mono text-emerald-400">
               {item.availableQuantity.toLocaleString()} {item.unit}
@@ -120,10 +109,19 @@ export function InventoryItemDetails({
 
           <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
             <span className="text-[10px] uppercase font-semibold text-slate-400 block mb-1">
+              Reorder Level
+            </span>
+            <span className="text-base font-bold font-mono text-slate-300">
+              {item.reorderLevel.toLocaleString()} {item.unit}
+            </span>
+          </div>
+
+          <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
+            <span className="text-[10px] uppercase font-semibold text-slate-400 block mb-1">
               Stock Valuation
             </span>
             <span className="text-base font-bold font-mono text-white">
-              ${item.stockValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₹{item.stockValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
         </div>

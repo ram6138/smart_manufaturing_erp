@@ -168,7 +168,7 @@ export async function POST(req: Request) {
       const { itemId, targetWarehouse, transferQuantity, notes } = body;
 
       const stockCheck = await query(
-        `SELECT product_id, warehouse_id, current_quantity FROM inventory_stock WHERE inventory_stock_id = $1`,
+        `SELECT product_id, warehouse_id, current_quantity, unit_cost FROM inventory_stock WHERE inventory_stock_id = $1`,
         [itemId]
       );
 
@@ -179,16 +179,17 @@ export async function POST(req: Request) {
       const stockRow = stockCheck.rows[0];
       const openingStock = stockRow.current_quantity;
       const closingStock = Math.max(0, openingStock - transferQuantity);
+      const unitCost = Number(stockRow.unit_cost) || 25.0;
 
       // Decrement source warehouse stock
       await query(
         `UPDATE inventory_stock 
-         SET current_quantity = $1, updated_at = NOW() 
-         WHERE inventory_stock_id = $2`,
-        [closingStock, itemId]
+         SET current_quantity = $1, inventory_value = $2, updated_at = NOW() 
+         WHERE inventory_stock_id = $3`,
+        [closingStock, closingStock * unitCost, itemId]
       );
 
-      // Log transaction
+      // Log source transaction (Transfer Out)
       await query(
         `INSERT INTO inventory_transactions 
          (transaction_date, product_id, warehouse_id, transaction_type, transaction_quantity, opening_stock, closing_stock, created_at)
@@ -196,30 +197,92 @@ export async function POST(req: Request) {
         [stockRow.product_id, stockRow.warehouse_id, -transferQuantity, openingStock, closingStock]
       );
 
-      return NextResponse.json({ status: 'success', message: 'Stock transfer logged in database successfully' });
+      // Resolve destination warehouse ID
+      let destWhId = 2;
+      const whRes = await query(
+        `SELECT warehouse_id FROM warehouses WHERE warehouse_name ILIKE $1 LIMIT 1`,
+        [targetWarehouse || '']
+      );
+      if (whRes.rows.length > 0) {
+        destWhId = whRes.rows[0].warehouse_id;
+      }
+
+      // Check or create destination stock record
+      const destStockCheck = await query(
+        `SELECT inventory_stock_id, current_quantity FROM inventory_stock WHERE product_id = $1 AND warehouse_id = $2`,
+        [stockRow.product_id, destWhId]
+      );
+
+      if (destStockCheck.rows.length > 0) {
+        const destStock = destStockCheck.rows[0];
+        const destOpening = Number(destStock.current_quantity) || 0;
+        const destClosing = destOpening + transferQuantity;
+        await query(
+          `UPDATE inventory_stock 
+           SET current_quantity = $1, inventory_value = $2, updated_at = NOW() 
+           WHERE inventory_stock_id = $3`,
+          [destClosing, destClosing * unitCost, destStock.inventory_stock_id]
+        );
+        // Log destination transaction (Transfer In)
+        await query(
+          `INSERT INTO inventory_transactions 
+           (transaction_date, product_id, warehouse_id, transaction_type, transaction_quantity, opening_stock, closing_stock, created_at)
+           VALUES (NOW(), $1, $2, 'Transfer In', $3, $4, $5, NOW())`,
+          [stockRow.product_id, destWhId, transferQuantity, destOpening, destClosing]
+        );
+      } else {
+        await query(
+          `INSERT INTO inventory_stock (product_id, warehouse_id, current_quantity, unit_cost, inventory_value, reorder_level, reorder_quantity, stock_status, updated_at)
+           VALUES ($1, $2, $3, $4, $5, 200, 500, 'In Stock', NOW())`,
+          [stockRow.product_id, destWhId, transferQuantity, unitCost, transferQuantity * unitCost]
+        );
+        // Log destination transaction (Transfer In)
+        await query(
+          `INSERT INTO inventory_transactions 
+           (transaction_date, product_id, warehouse_id, transaction_type, transaction_quantity, opening_stock, closing_stock, created_at)
+           VALUES (NOW(), $1, $2, 'Transfer In', $3, 0, $3, NOW())`,
+          [stockRow.product_id, destWhId, transferQuantity]
+        );
+      }
+
+      return NextResponse.json({ status: 'success', message: `Transferred ${transferQuantity} units to ${targetWarehouse}` });
     }
 
     if (action === 'purchaseRequest') {
       const { itemCode, requestedQuantity, reason } = body;
 
-      // Find product
-      const prod = await query(`SELECT product_id FROM products WHERE product_code = $1`, [itemCode]);
-      const productId = prod.rows.length > 0 ? prod.rows[0].product_id : null;
+      // Find product and unit cost
+      const prod = await query(
+        `SELECT p.product_id, COALESCE(s.unit_cost, 25.0)::float as unit_cost 
+         FROM products p 
+         LEFT JOIN inventory_stock s ON p.product_id = s.product_id 
+         WHERE p.product_code = $1 OR p.product_name = $1 LIMIT 1`,
+        [itemCode]
+      );
+      const productId = prod.rows.length > 0 ? prod.rows[0].product_id : 1;
+      const unitCost = prod.rows.length > 0 ? prod.rows[0].unit_cost : 25.0;
 
-      // Insert purchase request
-      const reqNumber = `PR-${Date.now().toString().slice(-6)}`;
+      // Insert purchase request with clean PR number
+      const countRes = await query(`SELECT COALESCE(MAX(purchase_request_id), 0) + 1 as next_id FROM purchase_requests;`);
+      const nextId = parseInt(countRes.rows[0].next_id, 10);
+      const reqNumber = `PR-2026-${String(100 + nextId).padStart(3, '0')}`;
+
       const prRes = await query(
-        `INSERT INTO purchase_requests (request_number, request_date, request_status, created_at)
-         VALUES ($1, CURRENT_DATE, 'Pending', NOW())
-         RETURNING purchase_request_id`,
+        `INSERT INTO purchase_requests 
+           (request_number, request_date, requesting_department_id, requester_id, request_status, required_by_date, created_at)
+         VALUES 
+           ($1, CURRENT_DATE, 1, 1, 'Pending', CURRENT_DATE + INTERVAL '7 days', NOW())
+         RETURNING purchase_request_id, request_number;`,
         [reqNumber]
       );
 
       if (productId && prRes.rows.length > 0) {
         await query(
-          `INSERT INTO purchase_request_items (purchase_request_id, product_id, requested_quantity)
-           VALUES ($1, $2, $3)`,
-          [prRes.rows[0].purchase_request_id, productId, requestedQuantity]
+          `INSERT INTO purchase_request_items 
+             (purchase_request_id, product_id, requested_quantity, required_by_date, estimated_unit_price)
+           VALUES 
+             ($1, $2, $3, CURRENT_DATE + INTERVAL '7 days', $4);`,
+          [prRes.rows[0].purchase_request_id, productId, requestedQuantity, unitCost]
         );
       }
 

@@ -67,9 +67,7 @@ export function InventoryTable({
               <th className="pb-3 font-semibold">Item Code & Name</th>
               <th className="pb-3 font-semibold">Category</th>
               <th className="pb-3 font-semibold">Warehouse</th>
-              <th className="pb-3 font-semibold text-right">On Hand</th>
-              <th className="pb-3 font-semibold text-right">Reserved</th>
-              <th className="pb-3 font-semibold text-right">Available</th>
+              <th className="pb-3 font-semibold text-right">Available Stock</th>
               <th className="pb-3 font-semibold text-right">Reorder Lvl</th>
               <th className="pb-3 font-semibold text-right">Unit Cost</th>
               <th className="pb-3 font-semibold text-right">Stock Value</th>
@@ -109,16 +107,6 @@ export function InventoryTable({
                   <div className="text-[10px] text-slate-500 font-mono">
                     {item.locationBin}
                   </div>
-                </td>
-
-                {/* Quantity On Hand */}
-                <td className="py-3.5 px-3 text-right font-mono text-slate-300 whitespace-nowrap font-medium">
-                  {item.quantityOnHand.toLocaleString()} {item.unit}
-                </td>
-
-                {/* Reserved Quantity */}
-                <td className="py-3.5 px-3 text-right font-mono text-amber-400/90 whitespace-nowrap">
-                  {item.reservedQuantity.toLocaleString()} {item.unit}
                 </td>
 
                 {/* Available Quantity (Calculated) */}
@@ -229,21 +217,15 @@ export function InventoryTable({
             </div>
 
             {/* Calculations Breakdown */}
-            <div className="grid grid-cols-3 gap-2 text-xs py-2 border-y border-slate-800/80">
+            <div className="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800/80">
               <div>
-                <span className="text-[10px] uppercase text-slate-500 block">On Hand</span>
-                <span className="font-mono font-bold text-slate-200">
-                  {item.quantityOnHand.toLocaleString()}
+                <span className="text-[10px] uppercase text-slate-500 block">Reorder Lvl</span>
+                <span className="font-mono text-slate-400">
+                  {item.reorderLevel.toLocaleString()} {item.unit}
                 </span>
               </div>
-              <div>
-                <span className="text-[10px] uppercase text-slate-500 block">Reserved</span>
-                <span className="font-mono text-amber-400">
-                  {item.reservedQuantity.toLocaleString()}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase text-slate-500 block">Available</span>
+              <div className="text-right">
+                <span className="text-[10px] uppercase text-slate-500 block">Available Stock</span>
                 <span
                   className={`font-mono font-bold ${
                     item.status === "Critical" ? "text-rose-400" : "text-emerald-400"

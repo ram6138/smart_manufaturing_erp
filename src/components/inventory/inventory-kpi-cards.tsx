@@ -59,24 +59,12 @@ export function InventoryKpiCards({ items }: InventoryKpiCardsProps) {
       title: "Available Stock",
       value: `${totalAvailableStock.toLocaleString()}`,
       unit: "units",
-      change: "85.2%",
+      change: "100%",
       isGood: true,
-      label: "Unreserved for orders",
+      label: "Available in warehouse",
       icon: CheckCircle2,
       color: "text-blue-400",
       bg: "bg-blue-500/10 border-blue-500/20",
-    },
-    {
-      id: "reserved_stock",
-      title: "Reserved Stock",
-      value: `${totalReservedStock.toLocaleString()}`,
-      unit: "units",
-      change: "14.8%",
-      isGood: true,
-      label: "Allocated to work orders",
-      icon: Lock,
-      color: "text-purple-400",
-      bg: "bg-purple-500/10 border-purple-500/20",
     },
     {
       id: "low_stock",
@@ -105,7 +93,7 @@ export function InventoryKpiCards({ items }: InventoryKpiCardsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
       {cards.map((card) => {
         const Icon = card.icon;
         return (

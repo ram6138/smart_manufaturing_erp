@@ -17,12 +17,14 @@ interface ProcurementKpiCardsProps {
   suppliers: SupplierItem[];
   requests: PurchaseRequest[];
   orders: PurchaseOrderItem[];
+  onSelectTab?: (tab: "orders" | "requests" | "suppliers" | "materials" | "analytics") => void;
 }
 
 export function ProcurementKpiCards({
   suppliers,
   requests,
   orders,
+  onSelectTab,
 }: ProcurementKpiCardsProps) {
   const totalSuppliers = suppliers.length;
   const totalRequests = requests.length;
@@ -47,7 +49,17 @@ export function ProcurementKpiCards({
     return `₹${val.toLocaleString()}`;
   };
 
-  const cards = [
+  const cards: Array<{
+    title: string;
+    value: string;
+    subtext: string;
+    icon: any;
+    iconColor: string;
+    iconBg: string;
+    trend: string;
+    trendUp: boolean;
+    tab: "orders" | "requests" | "suppliers" | "materials" | "analytics";
+  }> = [
     {
       title: "Total Suppliers",
       value: totalSuppliers.toString(),
@@ -57,6 +69,7 @@ export function ProcurementKpiCards({
       iconBg: "bg-blue-500/10 border-blue-500/20",
       trend: "5 key categories",
       trendUp: true,
+      tab: "suppliers",
     },
     {
       title: "Purchase Requests",
@@ -67,6 +80,7 @@ export function ProcurementKpiCards({
       iconBg: "bg-cyan-500/10 border-cyan-500/20",
       trend: "+8 new this week",
       trendUp: true,
+      tab: "requests",
     },
     {
       title: "Pending Approvals",
@@ -77,6 +91,7 @@ export function ProcurementKpiCards({
       iconBg: "bg-amber-500/10 border-amber-500/20",
       trend: "Requires sign-off",
       trendUp: false,
+      tab: "requests",
     },
     {
       title: "Active Purchase Orders",
@@ -87,6 +102,7 @@ export function ProcurementKpiCards({
       iconBg: "bg-emerald-500/10 border-emerald-500/20",
       trend: "94.2% fulfillment",
       trendUp: true,
+      tab: "orders",
     },
     {
       title: "Procurement Spend",
@@ -97,6 +113,7 @@ export function ProcurementKpiCards({
       iconBg: "bg-purple-500/10 border-purple-500/20",
       trend: "+6.4% vs last month",
       trendUp: true,
+      tab: "analytics",
     },
     {
       title: "Overdue Orders",
@@ -107,8 +124,19 @@ export function ProcurementKpiCards({
       iconBg: "bg-rose-500/10 border-rose-500/20",
       trend: "Action required",
       trendUp: false,
+      tab: "orders",
     },
   ];
+
+  const handleCardClick = (tab: "orders" | "requests" | "suppliers" | "materials" | "analytics") => {
+    if (onSelectTab) {
+      onSelectTab(tab);
+      const section = document.getElementById("procurement-tabs-section");
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
@@ -117,19 +145,21 @@ export function ProcurementKpiCards({
         return (
           <div
             key={idx}
-            className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 backdrop-blur-sm hover:border-slate-700 transition-all shadow-md flex flex-col justify-between"
+            onClick={() => handleCardClick(card.tab)}
+            title={`Click to view ${card.title}`}
+            className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 backdrop-blur-sm hover:border-cyan-500/50 hover:bg-slate-850 hover:shadow-cyan-500/10 transition-all duration-200 shadow-md flex flex-col justify-between cursor-pointer active:scale-95 group"
           >
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-slate-400 tracking-tight">
+              <span className="text-xs font-semibold text-slate-400 group-hover:text-cyan-300 transition-colors tracking-tight">
                 {card.title}
               </span>
-              <div className={`p-2 rounded-lg border ${card.iconBg}`}>
+              <div className={`p-2 rounded-lg border ${card.iconBg} group-hover:scale-110 transition-transform`}>
                 <Icon className={`w-4 h-4 ${card.iconColor}`} />
               </div>
             </div>
 
             <div className="space-y-1">
-              <div className="text-2xl font-bold text-white tracking-tight">
+              <div className="text-2xl font-bold text-white group-hover:text-cyan-400 transition-colors tracking-tight">
                 {card.value}
               </div>
               <p className="text-[11px] text-slate-400 leading-tight">

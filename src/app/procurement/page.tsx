@@ -27,6 +27,7 @@ import { ProcurementOverview } from "@/components/procurement/procurement-overvi
 import { ProcurementSpendChart } from "@/components/procurement/procurement-spend-chart";
 import { PurchaseRequestTable } from "@/components/procurement/purchase-request-table";
 import { PurchaseRequestFilters } from "@/components/procurement/purchase-request-filters";
+import { PurchaseRequestDetails } from "@/components/procurement/purchase-request-details";
 import { NewPurchaseRequestModal } from "@/components/procurement/new-purchase-request-modal";
 import { SupplierTable } from "@/components/procurement/supplier-table";
 import { SupplierPerformance } from "@/components/procurement/supplier-performance";
@@ -142,22 +143,69 @@ export default function ProcurementPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Dynamic filter lists from actual data
+  const availableDepartments = useMemo(() => {
+    const set = new Set<string>();
+    requests.forEach((r) => {
+      if (r.department) set.add(r.department.trim());
+    });
+    return Array.from(set);
+  }, [requests]);
+
+  const availablePrStatuses = useMemo(() => {
+    const set = new Set<string>();
+    requests.forEach((r) => {
+      if (r.status) set.add(r.status.trim());
+    });
+    return Array.from(set);
+  }, [requests]);
+
+  const availablePriorities = useMemo(() => {
+    const set = new Set<string>();
+    requests.forEach((r) => {
+      if (r.priority) set.add(r.priority.trim());
+    });
+    return Array.from(set);
+  }, [requests]);
+
+  const availableMaterials = useMemo(() => {
+    const set = new Set<string>();
+    requests.forEach((r) => {
+      if (r.material) set.add(r.material.trim());
+    });
+    return Array.from(set);
+  }, [requests]);
+
   // Filtered PRs
   const filteredRequests = useMemo(() => {
     return requests.filter((r) => {
       if (prFilters.searchQuery) {
-        const q = prFilters.searchQuery.toLowerCase();
-        const matchesId = r.requestId.toLowerCase().includes(q);
-        const matchesReq = r.requestedBy.toLowerCase().includes(q);
-        const matchesMat = r.material.toLowerCase().includes(q);
-        const matchesDept = r.department.toLowerCase().includes(q);
+        const q = prFilters.searchQuery.toLowerCase().trim();
+        const matchesId = (r.requestId || "").toLowerCase().includes(q);
+        const matchesReq = (r.requestedBy || "").toLowerCase().includes(q);
+        const matchesMat = (r.material || "").toLowerCase().includes(q);
+        const matchesDept = (r.department || "").toLowerCase().includes(q);
         if (!matchesId && !matchesReq && !matchesMat && !matchesDept) return false;
       }
-      if (prFilters.department !== "all" && r.department !== prFilters.department) return false;
-      if (prFilters.status !== "all" && r.status !== prFilters.status) return false;
-      if (prFilters.priority !== "all" && r.priority !== prFilters.priority) return false;
-      if (prFilters.material !== "all" && !r.material.toLowerCase().includes(prFilters.material.toLowerCase())) {
-        return false;
+      if (prFilters.department !== "all") {
+        const target = prFilters.department.toLowerCase().trim();
+        const cur = (r.department || "").toLowerCase().trim();
+        if (cur !== target && !cur.includes(target) && !target.includes(cur)) return false;
+      }
+      if (prFilters.status !== "all") {
+        const target = prFilters.status.toLowerCase().trim();
+        const cur = (r.status || "").toLowerCase().trim();
+        if (cur !== target) return false;
+      }
+      if (prFilters.priority !== "all") {
+        const target = prFilters.priority.toLowerCase().trim();
+        const cur = (r.priority || "").toLowerCase().trim();
+        if (cur !== target) return false;
+      }
+      if (prFilters.material !== "all") {
+        const target = prFilters.material.toLowerCase().trim();
+        const cur = (r.material || "").toLowerCase().trim();
+        if (cur !== target && !cur.includes(target) && !target.includes(cur)) return false;
       }
       return true;
     });
@@ -167,17 +215,33 @@ export default function ProcurementPage() {
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
       if (poFilters.searchQuery) {
-        const q = poFilters.searchQuery.toLowerCase();
-        const matchesNum = o.poNumber.toLowerCase().includes(q);
-        const matchesSup = o.supplierName.toLowerCase().includes(q);
-        const matchesBuyer = o.buyer.toLowerCase().includes(q);
-        const matchesItem = o.items.some((it) => it.material.toLowerCase().includes(q));
+        const q = poFilters.searchQuery.toLowerCase().trim();
+        const matchesNum = (o.poNumber || "").toLowerCase().includes(q);
+        const matchesSup = (o.supplierName || "").toLowerCase().includes(q);
+        const matchesBuyer = (o.buyer || "").toLowerCase().includes(q);
+        const matchesItem = (o.items || []).some((it) => (it.material || "").toLowerCase().includes(q));
         if (!matchesNum && !matchesSup && !matchesBuyer && !matchesItem) return false;
       }
-      if (poFilters.supplier !== "all" && o.supplierName !== poFilters.supplier) return false;
-      if (poFilters.poStatus !== "all" && o.poStatus !== poFilters.poStatus) return false;
-      if (poFilters.deliveryStatus !== "all" && o.deliveryStatus !== poFilters.deliveryStatus) return false;
-      if (poFilters.paymentStatus !== "all" && o.paymentStatus !== poFilters.paymentStatus) return false;
+      if (poFilters.supplier !== "all") {
+        const target = poFilters.supplier.toLowerCase().trim();
+        const cur = (o.supplierName || "").toLowerCase().trim();
+        if (cur !== target && !cur.includes(target) && !target.includes(cur)) return false;
+      }
+      if (poFilters.poStatus !== "all") {
+        const target = poFilters.poStatus.toLowerCase().trim();
+        const cur = (o.poStatus || "").toLowerCase().trim();
+        if (cur !== target) return false;
+      }
+      if (poFilters.deliveryStatus !== "all") {
+        const target = poFilters.deliveryStatus.toLowerCase().trim();
+        const cur = (o.deliveryStatus || "").toLowerCase().trim();
+        if (cur !== target) return false;
+      }
+      if (poFilters.paymentStatus !== "all") {
+        const target = poFilters.paymentStatus.toLowerCase().trim();
+        const cur = (o.paymentStatus || "").toLowerCase().trim();
+        if (cur !== target) return false;
+      }
       return true;
     });
   }, [orders, poFilters]);
@@ -189,11 +253,52 @@ export default function ProcurementPage() {
   };
 
   // PR Actions
-  const handleApprovePr = (request: PurchaseRequest) => {
+  const handleApprovePr = async (request: PurchaseRequest) => {
     setRequests((prev) =>
       prev.map((r) => (r.id === request.id ? { ...r, status: "Approved" } : r))
     );
+    if (selectedPrForDetails && selectedPrForDetails.id === request.id) {
+      setSelectedPrForDetails({ ...selectedPrForDetails, status: "Approved" });
+    }
+    try {
+      await fetch('/api/procurement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'updatePRStatus',
+          prId: request.id,
+          requestId: request.requestId,
+          status: 'Approved',
+        }),
+      });
+    } catch (e) {
+      console.error('Error approving PR:', e);
+    }
     showToast(`Purchase Request ${request.requestId} approved for procurement`);
+  };
+
+  const handleSubmitDraftPr = async (request: PurchaseRequest) => {
+    setRequests((prev) =>
+      prev.map((r) => (r.id === request.id ? { ...r, status: "Pending" } : r))
+    );
+    if (selectedPrForDetails && selectedPrForDetails.id === request.id) {
+      setSelectedPrForDetails({ ...selectedPrForDetails, status: "Pending" });
+    }
+    try {
+      await fetch('/api/procurement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'updatePRStatus',
+          prId: request.id,
+          requestId: request.requestId,
+          status: 'Pending',
+        }),
+      });
+    } catch (e) {
+      console.error('Error submitting PR:', e);
+    }
+    showToast(`Purchase Request ${request.requestId} submitted for approval`);
   };
 
   const handleOpenRejectPr = (request: PurchaseRequest) => {
@@ -210,8 +315,26 @@ export default function ProcurementPage() {
     setIsCreatePoModalOpen(true);
   };
 
-  const handleCreatePr = (newPr: PurchaseRequest) => {
+  const handleCreatePr = async (newPr: PurchaseRequest) => {
     setRequests((prev) => [newPr, ...prev]);
+    try {
+      await fetch('/api/procurement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'createPR',
+          material: newPr.material,
+          quantity: newPr.quantity,
+          department: newPr.department,
+          priority: newPr.priority,
+          requiredDate: newPr.requiredDate,
+          reason: newPr.reason,
+          estimatedUnitCost: newPr.estimatedUnitCost,
+        }),
+      });
+    } catch (e) {
+      console.error('Error saving PR to database:', e);
+    }
     showToast(`Purchase Requisition ${newPr.requestId} recorded successfully`);
   };
 
@@ -250,6 +373,28 @@ export default function ProcurementPage() {
             : r
         )
       );
+      if (selectedPrForDetails && selectedPrForDetails.id === rejectModalState.targetId) {
+        setSelectedPrForDetails({
+          ...selectedPrForDetails,
+          status: "Rejected",
+          rejectionReason: reason,
+        });
+      }
+      try {
+        await fetch('/api/procurement', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'updatePRStatus',
+            prId: rejectModalState.targetId,
+            requestId: rejectModalState.entityId,
+            status: 'Rejected',
+            reason,
+          }),
+        });
+      } catch (e) {
+        console.error('Error rejecting PR:', e);
+      }
       showToast(`Purchase Request ${rejectModalState.entityId} rejected`);
     } else {
       setOrders((prev) =>
@@ -461,7 +606,12 @@ export default function ProcurementPage() {
         </div>
 
         {/* 1. PROCUREMENT KPI CARDS */}
-        <ProcurementKpiCards suppliers={suppliers} requests={requests} orders={orders} />
+        <ProcurementKpiCards
+          suppliers={suppliers}
+          requests={requests}
+          orders={orders}
+          onSelectTab={setActiveTab}
+        />
 
         {/* 2. PROCUREMENT OVERVIEW */}
         <ProcurementOverview suppliers={suppliers} orders={orders} />
@@ -481,7 +631,7 @@ export default function ProcurementPage() {
         <ProcurementSpendChart data={PROCUREMENT_SPEND_6_MONTHS} />
 
         {/* SECTION TABS */}
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto text-xs font-semibold">
+        <div id="procurement-tabs-section" className="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto text-xs font-semibold scroll-mt-24">
           <button
             onClick={() => setActiveTab("orders")}
             className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 whitespace-nowrap ${
@@ -580,12 +730,17 @@ export default function ProcurementPage() {
               }
               totalRequests={requests.length}
               filteredCount={filteredRequests.length}
+              availableDepartments={availableDepartments}
+              availableStatuses={availablePrStatuses}
+              availablePriorities={availablePriorities}
+              availableMaterials={availableMaterials}
             />
             <PurchaseRequestTable
               requests={filteredRequests}
               onApprove={handleApprovePr}
               onReject={handleOpenRejectPr}
               onConvertToPo={handleConvertToPo}
+              onSubmitPending={handleSubmitDraftPr}
               onViewDetails={(r) => {
                 setSelectedPrForDetails(r);
               }}
@@ -629,6 +784,16 @@ export default function ProcurementPage() {
           onSubmit={handleCreatePo}
           suppliers={suppliers}
           prefilledFromRequest={prToConvert}
+        />
+
+        <PurchaseRequestDetails
+          request={selectedPrForDetails}
+          isOpen={!!selectedPrForDetails}
+          onClose={() => setSelectedPrForDetails(null)}
+          onApprove={handleApprovePr}
+          onReject={handleOpenRejectPr}
+          onConvertToPo={handleConvertToPo}
+          onSubmitPending={handleSubmitDraftPr}
         />
 
         <PurchaseOrderDetails

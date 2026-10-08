@@ -13,23 +13,18 @@ import {
   X,
 } from "lucide-react";
 
+const STATUSES = ["Healthy", "Low Stock", "Critical", "Overstock"];
+
 interface InventoryFiltersProps {
   filters: InventoryFilterState;
   onFilterChange: (newFilters: Partial<InventoryFilterState>) => void;
   onResetFilters: () => void;
   totalItems: number;
   filteredCount: number;
+  availableCategories?: string[];
+  availableWarehouses?: string[];
+  availableStatuses?: string[];
 }
-
-const CATEGORIES = ["Raw Materials", "Packaging Materials"];
-
-const WAREHOUSES = [
-  "Main Warehouse",
-  "Raw Material Warehouse",
-  "Packaging Warehouse",
-];
-
-const STATUSES = ["Healthy", "Low Stock", "Critical", "Overstock"];
 
 export function InventoryFilters({
   filters,
@@ -37,7 +32,21 @@ export function InventoryFilters({
   onResetFilters,
   totalItems,
   filteredCount,
+  availableCategories = [],
+  availableWarehouses = [],
+  availableStatuses = [],
 }: InventoryFiltersProps) {
+  const categories = availableCategories.length > 0 
+    ? availableCategories 
+    : ["Raw Material", "Finished Goods", "Packaging Material"];
+
+  const warehouses = availableWarehouses.length > 0 
+    ? availableWarehouses 
+    : ["Main Raw Material Warehouse", "Finished Goods Warehouse"];
+
+  const statuses = availableStatuses.length > 0 
+    ? availableStatuses 
+    : ["Healthy", "Low Stock", "Critical", "Overstock"];
   const isFiltered =
     filters.searchQuery !== "" ||
     filters.category !== "all" ||
@@ -103,7 +112,7 @@ export function InventoryFilters({
             className="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer"
           >
             <option value="all">All Categories</option>
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <option key={cat} value={cat}>
                 {cat}
               </option>
@@ -123,7 +132,7 @@ export function InventoryFilters({
             className="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer"
           >
             <option value="all">All Warehouses</option>
-            {WAREHOUSES.map((wh) => (
+            {warehouses.map((wh) => (
               <option key={wh} value={wh}>
                 {wh}
               </option>
@@ -143,7 +152,7 @@ export function InventoryFilters({
             className="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer"
           >
             <option value="all">All Statuses</option>
-            {STATUSES.map((st) => (
+            {statuses.map((st) => (
               <option key={st} value={st}>
                 {st}
               </option>

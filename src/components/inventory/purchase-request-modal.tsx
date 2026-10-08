@@ -6,6 +6,7 @@ import { X, ShoppingCart, Send, CheckCircle2 } from "lucide-react";
 
 interface PurchaseRequestModalProps {
   item: ComputedInventoryItem | null;
+  allItems?: ComputedInventoryItem[];
   onClose: () => void;
   onSubmitRequest: (params: {
     itemCode: string;
@@ -20,15 +21,17 @@ interface PurchaseRequestModalProps {
 
 export function PurchaseRequestModal({
   item,
+  allItems = [],
   onClose,
   onSubmitRequest,
 }: PurchaseRequestModalProps) {
+  const [selectedItemId, setSelectedItemId] = useState<string>("");
   const [requestedQuantity, setRequestedQuantity] = useState<number>(0);
   const [reason, setReason] = useState<string>("Low Stock Reorder");
 
   useEffect(() => {
     if (item) {
-      // Default to minimum order quantity or 2x reorder point deficit
+      setSelectedItemId(item.id);
       const deficit = Math.max(0, item.reorderLevel - item.availableQuantity);
       setRequestedQuantity(item.minOrderQuantity || Math.max(1000, deficit * 2));
       setReason(
@@ -36,28 +39,47 @@ export function PurchaseRequestModal({
           ? "Critical Stock Replenishment"
           : "Standard Reorder Cycle"
       );
+    } else {
+      setSelectedItemId("");
     }
   }, [item]);
 
   if (!item) return null;
 
+  const currentItem = (selectedItemId && allItems.find((i) => i.id === selectedItemId)) || item;
+
+  const handleItemChange = (newId: string) => {
+    setSelectedItemId(newId);
+    const target = allItems.find((i) => i.id === newId);
+    if (target) {
+      const deficit = Math.max(0, target.reorderLevel - target.availableQuantity);
+      setRequestedQuantity(target.minOrderQuantity || Math.max(1000, deficit * 2));
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmitRequest({
-      itemCode: item.itemCode,
-      itemName: item.itemName,
-      currentAvailableQuantity: item.availableQuantity,
-      reorderLevel: item.reorderLevel,
+      itemCode: currentItem.itemCode,
+      itemName: currentItem.itemName,
+      currentAvailableQuantity: currentItem.availableQuantity,
+      reorderLevel: currentItem.reorderLevel,
       requestedQuantity,
-      unit: item.unit,
+      unit: currentItem.unit,
       reason,
     });
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-      <div className="relative w-full max-w-md rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-6 text-slate-100 space-y-5">
+    <div 
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in"
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-6 text-slate-100 space-y-5"
+      >
         {/* Header */}
         <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2.5">
@@ -73,8 +95,10 @@ export function PurchaseRequestModal({
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+            aria-label="Close dialog"
           >
             <X className="w-5 h-5" />
           </button>
@@ -82,23 +106,43 @@ export function PurchaseRequestModal({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          {/* Item Selector if allItems is available */}
+          {allItems.length > 1 && (
+            <div className="space-y-1.5">
+              <label className="font-semibold text-slate-300 uppercase tracking-wider text-[10px]">
+                Select Inventory Item
+              </label>
+              <select
+                value={currentItem.id}
+                onChange={(e) => handleItemChange(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-medium focus:outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer"
+              >
+                {allItems.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.itemName} ({i.itemCode}) — Current: {i.availableQuantity} {i.unit}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Item Overview Pill */}
           <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
             <div className="flex justify-between items-center text-xs">
-              <span className="text-slate-400">Material Item:</span>
-              <span className="font-bold text-white font-mono">{item.itemCode} ({item.itemName})</span>
+              <span className="text-slate-400">Selected SKU:</span>
+              <span className="font-bold text-white font-mono">{currentItem.itemCode} ({currentItem.itemName})</span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-slate-800/80">
               <div>
                 <span className="text-[10px] text-slate-500 uppercase block">Available Stock</span>
                 <span className="font-mono font-bold text-cyan-400">
-                  {item.availableQuantity.toLocaleString()} {item.unit}
+                  {currentItem.availableQuantity.toLocaleString()} {currentItem.unit}
                 </span>
               </div>
               <div className="text-right">
                 <span className="text-[10px] text-slate-500 uppercase block">Reorder Level</span>
                 <span className="font-mono text-slate-300">
-                  {item.reorderLevel.toLocaleString()} {item.unit}
+                  {currentItem.reorderLevel.toLocaleString()} {currentItem.unit}
                 </span>
               </div>
             </div>
@@ -108,10 +152,10 @@ export function PurchaseRequestModal({
           <div className="space-y-1.5">
             <div className="flex justify-between items-center">
               <label className="font-semibold text-slate-300 uppercase tracking-wider text-[10px]">
-                Requested Quantity ({item.unit})
+                Requested Quantity ({currentItem.unit})
               </label>
               <span className="text-[10px] text-slate-500 font-mono">
-                MOQ: {item.minOrderQuantity.toLocaleString()} {item.unit}
+                MOQ: {currentItem.minOrderQuantity.toLocaleString()} {currentItem.unit}
               </span>
             </div>
             <input
@@ -145,7 +189,7 @@ export function PurchaseRequestModal({
 
           {/* Integration notice */}
           <div className="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800 text-[11px] text-slate-400 leading-snug">
-            Drafting this request will dispatch an automated notification to the <strong>Procurement Manager</strong> with estimated lead time of <strong>{item.leadTimeDays} days</strong>.
+            Drafting this request will dispatch an automated notification to the <strong>Procurement Manager</strong> with estimated lead time of <strong>{currentItem.leadTimeDays} days</strong>.
           </div>
 
           {/* Footer Actions */}

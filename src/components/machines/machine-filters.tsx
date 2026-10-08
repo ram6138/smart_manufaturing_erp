@@ -17,19 +17,21 @@ interface MachineFiltersProps {
   onResetFilters: () => void;
   totalMachines: number;
   filteredCount: number;
+  availableMachineTypes?: string[];
+  availableStatuses?: string[];
+  availableRiskLevels?: string[];
 }
 
-const MACHINE_TYPES = [
-  "Continuous Tunnel Oven",
-  "Rotary Deck Oven",
-  "High-Shear Batch Mixer",
-  "Flow Wrap Packager",
-  "Secondary Box Cartoner",
+const DEFAULT_MACHINE_TYPES = [
+  "Baking Oven",
+  "Mixing Machine",
+  "Packaging Machine",
+  "Production Line",
 ];
 
-const STATUSES = ["Running", "Idle", "Maintenance", "Warning"];
+const DEFAULT_STATUSES = ["Running", "Idle", "Maintenance", "Warning"];
 
-const RISK_LEVELS = ["Low", "Medium", "High", "Critical"];
+const DEFAULT_RISK_LEVELS = ["Low", "Medium", "High", "Critical"];
 
 export function MachineFilters({
   filters,
@@ -37,7 +39,14 @@ export function MachineFilters({
   onResetFilters,
   totalMachines,
   filteredCount,
+  availableMachineTypes = [],
+  availableStatuses = [],
+  availableRiskLevels = [],
 }: MachineFiltersProps) {
+  const machineTypes = availableMachineTypes.length > 0 ? availableMachineTypes : DEFAULT_MACHINE_TYPES;
+  const statuses = availableStatuses.length > 0 ? availableStatuses : DEFAULT_STATUSES;
+  const riskLevels = availableRiskLevels.length > 0 ? availableRiskLevels : DEFAULT_RISK_LEVELS;
+
   const isFiltered =
     filters.searchQuery !== "" ||
     filters.machineType !== "all" ||
@@ -55,7 +64,7 @@ export function MachineFilters({
           </div>
           <input
             type="text"
-            placeholder="Search equipment by code (e.g. MCH-001, MCH-004) or machine name..."
+            placeholder="Search equipment by code (e.g. MCH-001, PACK-01) or machine name..."
             value={filters.searchQuery}
             onChange={(e) => onFilterChange({ searchQuery: e.target.value })}
             className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 transition"
@@ -101,8 +110,8 @@ export function MachineFilters({
             onChange={(e) => onFilterChange({ machineType: e.target.value })}
             className="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer"
           >
-            <option value="all">All Machine Types (5)</option>
-            {MACHINE_TYPES.map((type) => (
+            <option value="all">All Machine Types ({machineTypes.length})</option>
+            {machineTypes.map((type) => (
               <option key={type} value={type}>
                 {type}
               </option>
@@ -122,7 +131,7 @@ export function MachineFilters({
             className="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer"
           >
             <option value="all">All Statuses</option>
-            {STATUSES.map((st) => (
+            {statuses.map((st) => (
               <option key={st} value={st}>
                 {st}
               </option>
@@ -142,7 +151,7 @@ export function MachineFilters({
             className="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer"
           >
             <option value="all">All Risk Levels</option>
-            {RISK_LEVELS.map((rl) => (
+            {riskLevels.map((rl) => (
               <option key={rl} value={rl}>
                 {rl} Risk
               </option>

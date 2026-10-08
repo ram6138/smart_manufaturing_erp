@@ -9,7 +9,7 @@ import {
   Wrench,
   AlertTriangle,
   ShieldAlert,
-  Activity,
+  ArrowRight,
 } from "lucide-react";
 
 interface MachineKpiCardsProps {
@@ -18,14 +18,22 @@ interface MachineKpiCardsProps {
   onCardClick?: (cardId: string) => void;
 }
 
+export function normalizeMachineStatus(status?: string): "Running" | "Idle" | "Maintenance" | "Warning" {
+  const s = (status || "").toLowerCase().trim();
+  if (s === "warning" || s === "alert" || s === "degraded") return "Warning";
+  if (s === "maintenance" || s === "under maintenance" || s === "repair" || s === "offline") return "Maintenance";
+  if (s === "idle" || s === "standby" || s === "ready") return "Idle";
+  return "Running"; // Running, Active, Operational, In Use
+}
+
 export function MachineKpiCards({ machines, activeCardId = "total", onCardClick }: MachineKpiCardsProps) {
   const totalCount = machines.length;
-  const runningCount = machines.filter((m) => m.status === "Running").length;
-  const idleCount = machines.filter((m) => m.status === "Idle").length;
-  const maintenanceCount = machines.filter((m) => m.status === "Maintenance").length;
-  const warningCount = machines.filter((m) => m.status === "Warning").length;
+  const runningCount = machines.filter((m) => normalizeMachineStatus(m.status) === "Running").length;
+  const idleCount = machines.filter((m) => normalizeMachineStatus(m.status) === "Idle").length;
+  const maintenanceCount = machines.filter((m) => normalizeMachineStatus(m.status) === "Maintenance").length;
+  const warningCount = machines.filter((m) => normalizeMachineStatus(m.status) === "Warning").length;
   const highRiskCount = machines.filter(
-    (m) => m.riskLevel === "High" || m.riskLevel === "Critical"
+    (m) => m.riskLevel === "High" || m.riskLevel === "Critical" || normalizeMachineStatus(m.status) === "Warning" || normalizeMachineStatus(m.status) === "Maintenance"
   ).length;
 
   const cards = [
@@ -34,7 +42,7 @@ export function MachineKpiCards({ machines, activeCardId = "total", onCardClick 
       title: "Total Machines",
       value: `${totalCount}`,
       unit: "Assets",
-      label: "Plant 1 equipment",
+      label: totalCount > 0 ? `${totalCount} plant asset${totalCount === 1 ? '' : 's'}` : "No assets",
       icon: Cpu,
       color: "text-cyan-400",
       activeBorder: "border-cyan-500 ring-2 ring-cyan-500/30 bg-slate-900",
@@ -45,7 +53,7 @@ export function MachineKpiCards({ machines, activeCardId = "total", onCardClick 
       title: "Running",
       value: `${runningCount}`,
       unit: "Online",
-      label: `${((runningCount / (totalCount || 1)) * 100).toFixed(0)}% line utilization`,
+      label: totalCount > 0 ? `${((runningCount / totalCount) * 100).toFixed(0)}% line utilization` : "0% utilization",
       icon: CheckCircle2,
       color: "text-emerald-400",
       activeBorder: "border-emerald-500 ring-2 ring-emerald-500/30 bg-slate-900",
@@ -56,7 +64,7 @@ export function MachineKpiCards({ machines, activeCardId = "total", onCardClick 
       title: "Idle",
       value: `${idleCount}`,
       unit: "Standby",
-      label: "Zero standby queues",
+      label: idleCount > 0 ? `${idleCount} standby queue${idleCount === 1 ? '' : 's'}` : "Zero standby queues",
       icon: Clock,
       color: "text-slate-400",
       activeBorder: "border-slate-400 ring-2 ring-slate-400/30 bg-slate-900",
@@ -67,7 +75,7 @@ export function MachineKpiCards({ machines, activeCardId = "total", onCardClick 
       title: "Maintenance",
       value: `${maintenanceCount}`,
       unit: "Offline",
-      label: "1 in active overhaul",
+      label: maintenanceCount > 0 ? `${maintenanceCount} in active overhaul` : "Zero active overhauls",
       icon: Wrench,
       color: "text-rose-400",
       activeBorder: "border-rose-500 ring-2 ring-rose-500/30 bg-slate-900",
@@ -78,7 +86,7 @@ export function MachineKpiCards({ machines, activeCardId = "total", onCardClick 
       title: "Warning",
       value: `${warningCount}`,
       unit: "Attention",
-      label: "Sensor drift detected",
+      label: warningCount > 0 ? `${warningCount} sensor drift flagged` : "Zero sensor drift",
       icon: AlertTriangle,
       color: "text-amber-400",
       activeBorder: "border-amber-500 ring-2 ring-amber-500/30 bg-slate-900",
@@ -89,7 +97,7 @@ export function MachineKpiCards({ machines, activeCardId = "total", onCardClick 
       title: "High Risk",
       value: `${highRiskCount}`,
       unit: "Critical/High",
-      label: "Predictive AI failure alert",
+      label: highRiskCount > 0 ? `${highRiskCount} predictive AI alerts` : "All systems nominal",
       icon: ShieldAlert,
       color: "text-orange-400",
       activeBorder: "border-orange-500 ring-2 ring-orange-500/30 bg-slate-900",
@@ -115,18 +123,19 @@ export function MachineKpiCards({ machines, activeCardId = "total", onCardClick 
                 onCardClick?.(card.id);
               }
             }}
-            className={`p-4 rounded-2xl border shadow-md transition-all duration-200 flex flex-col justify-between cursor-pointer select-none text-left outline-none ${
+            title={`Click to view ${card.title} machines`}
+            className={`p-4 rounded-2xl border shadow-md transition-all duration-200 flex flex-col justify-between cursor-pointer select-none text-left outline-none group ${
               isActive
                 ? `${card.activeBorder} shadow-lg scale-[1.02]`
-                : "bg-slate-900/80 border-slate-800/90 hover:border-slate-700 hover:bg-slate-800/60 hover:scale-[1.01]"
+                : "bg-slate-900/80 border-slate-800/90 hover:border-slate-700 hover:bg-slate-800/70 hover:scale-[1.01]"
             }`}
           >
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 truncate">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 group-hover:text-slate-200 transition-colors truncate">
                   {card.title}
                 </span>
-                <div className={`p-1.5 rounded-lg border ${card.bg} shrink-0`}>
+                <div className={`p-1.5 rounded-lg border ${card.bg} shrink-0 group-hover:scale-105 transition-transform`}>
                   <Icon className={`w-4 h-4 ${card.color}`} />
                 </div>
               </div>
@@ -145,10 +154,12 @@ export function MachineKpiCards({ machines, activeCardId = "total", onCardClick 
 
             <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400 truncate">
               <span className="truncate">{card.label}</span>
-              {isActive && (
+              {isActive ? (
                 <span className={`font-mono text-[9px] font-bold ${card.color} uppercase tracking-wider ml-1`}>
                   Active
                 </span>
+              ) : (
+                <ArrowRight className="w-3 h-3 text-slate-600 opacity-0 group-hover:opacity-100 group-hover:text-slate-400 transition-all shrink-0 ml-1" />
               )}
             </div>
           </div>
